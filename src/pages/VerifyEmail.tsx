@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Loader2, ArrowRight, MailCheck, ShieldAlert } from 'lucide-react';
+import { API_URL } from '../config';
 import Button from '../components/Button';
 
 const VerifyEmail: React.FC = () => {
@@ -20,7 +21,7 @@ const VerifyEmail: React.FC = () => {
             }
 
             try {
-                const response = await fetch(`http://127.0.0.1:5000/api/auth/verify/${token}`);
+                const response = await fetch(`${API_URL}/api/auth/verify/${token}`);
                 const data = await response.json();
 
                 if (response.ok) {
