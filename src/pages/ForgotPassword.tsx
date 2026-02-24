@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, ArrowRight, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 import Input from '../components/Input';
 import Button from '../components/Button';
 
@@ -39,27 +39,101 @@ const ForgotPassword: React.FC = () => {
 
     if (status === 'success') {
         return (
-            <div className="auth-container animate-fade-in" style={{ justifyContent: 'center' }}>
-                <div className="auth-card glass-panel" style={{ textAlign: 'center' }}>
-                    <div className="auth-header">
-                        <CheckCircle size={48} color="var(--success)" style={{ margin: '0 auto 1rem' }} />
+            <div className="auth-container animate-fade-in">
+                <div className="auth-card success-card glass-panel">
+                    <div className="success-icon-wrapper">
+                        <Mail size={80} color="var(--primary)" strokeWidth={1.5} />
+                        <div className="check-badge">
+                            <CheckCircle2 size={28} color="var(--success)" fill="var(--bg-main)" />
+                        </div>
+                    </div>
+
+                    <div className="auth-header" style={{ textAlign: 'center' }}>
                         <h2>Email Enviado!</h2>
-                        <p style={{ color: 'var(--success)', marginBottom: '1.5rem' }}>{message}</p>
-                        <Button onClick={() => navigate('/login')} fullWidth>
-                            Voltar para o Login
+                        <p className="description" style={{ color: '#94a3b8' }}>
+                            {message || 'Enviamos as instruções de recuperação para o seu e-mail.'}
+                        </p>
+                    </div>
+
+                    <div className="success-footer" style={{ width: '100%', marginTop: '1rem' }}>
+                        <Button onClick={() => navigate('/login')} fullWidth className="glow-button">
+                            Voltar para o Login <ArrowRight size={18} />
                         </Button>
                     </div>
                 </div>
+
+                <style>{`
+                    .auth-container {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        background: #0f111a;
+                        padding: 2rem;
+                    }
+                    .success-card {
+                        width: 100%;
+                        max-width: 480px;
+                        padding: 3.5rem 2.5rem;
+                        text-align: center;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 2rem;
+                        border: 1px solid rgba(255, 255, 255, 0.08);
+                        background: rgba(23, 25, 35, 0.6);
+                        backdrop-filter: blur(12px);
+                        border-radius: 1.5rem;
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                    }
+                    .success-icon-wrapper {
+                        position: relative;
+                        margin-bottom: 0.5rem;
+                    }
+                    .check-badge {
+                        position: absolute;
+                        bottom: -4px;
+                        right: -4px;
+                        background: #0f111a;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .auth-header h2 {
+                        font-size: 2.25rem;
+                        font-weight: 700;
+                        color: white;
+                        margin-bottom: 1rem;
+                    }
+                    .glow-button {
+                        height: 3.5rem;
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        background: var(--primary);
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.75rem;
+                        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+                        border-radius: 0.75rem;
+                    }
+                    .glow-button:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
+                    }
+                `}</style>
             </div>
         );
     }
 
     return (
-        <div className="auth-container animate-fade-in" style={{ justifyContent: 'center' }}>
-            <div className="auth-card glass-panel">
-                <Button variant="ghost" onClick={() => navigate('/login')} style={{ width: 'max-content', marginBottom: '1rem', padding: '0.25rem' }}>
-                    <ArrowLeft size={18} /> Voltar
-                </Button>
+        <div className="auth-container animate-fade-in">
+            <div className="auth-card glass-panel forgot-card">
+                <button className="back-button" onClick={() => navigate('/login')}>
+                    <ArrowLeft size={18} /> Voltar ao Login
+                </button>
 
                 <div className="auth-header">
                     <h2>Recuperar Senha</h2>
@@ -83,7 +157,7 @@ const ForgotPassword: React.FC = () => {
                         required
                     />
 
-                    <Button type="submit" fullWidth disabled={status === 'loading'} style={{ marginTop: '0.5rem' }}>
+                    <Button type="submit" fullWidth disabled={status === 'loading'} className="glow-button">
                         {status === 'loading' ? 'Enviando...' : (
                             <>
                                 Enviar Link <ArrowRight size={18} />
@@ -93,16 +167,96 @@ const ForgotPassword: React.FC = () => {
                 </form>
 
                 <style>{`
-          .error-alert {
-            background: rgba(239, 68, 68, 0.1);
-            color: #fca5a5;
-            border-left: 4px solid var(--danger);
-            padding: 1rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-          }
-        `}</style>
+                    .auth-container {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        background: #0f111a;
+                        padding: 2rem;
+                    }
+
+                    .forgot-card {
+                        width: 100%;
+                        max-width: 480px;
+                        padding: 3rem;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 2rem;
+                        border: 1px solid rgba(255, 255, 255, 0.08);
+                        background: rgba(23, 25, 35, 0.6);
+                        backdrop-filter: blur(12px);
+                        border-radius: 1.5rem;
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                    }
+
+                    .back-button {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        background: transparent;
+                        border: none;
+                        color: var(--primary);
+                        font-weight: 600;
+                        font-size: 0.95rem;
+                        cursor: pointer;
+                        padding: 0;
+                        transition: all 0.2s;
+                        width: fit-content;
+                    }
+
+                    .back-button:hover {
+                        color: #a78bfa;
+                        transform: translateX(-4px);
+                    }
+
+                    .auth-header h2 {
+                        font-size: 2rem;
+                        font-weight: 700;
+                        color: white;
+                        margin-bottom: 0.5rem;
+                    }
+
+                    .auth-header p {
+                        color: #94a3b8;
+                        font-size: 1.05rem;
+                    }
+
+                    .auth-form {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1.5rem;
+                    }
+
+                    .glow-button {
+                        height: 3.5rem;
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        background: var(--primary);
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.75rem;
+                        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+                        border-radius: 0.75rem;
+                        margin-top: 0.5rem;
+                    }
+
+                    .glow-button:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
+                    }
+
+                    .error-alert {
+                        background: rgba(239, 68, 68, 0.1);
+                        color: #fca5a5;
+                        border-left: 4px solid var(--danger);
+                        padding: 1rem;
+                        border-radius: 0.5rem;
+                        font-size: 0.875rem;
+                    }
+                `}</style>
             </div>
         </div>
     );
