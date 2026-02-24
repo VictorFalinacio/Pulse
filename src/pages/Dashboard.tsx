@@ -1,38 +1,51 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Activity } from 'lucide-react';
 import Button from '../components/Button';
 
 const Dashboard: React.FC = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [userName, setUserName] = useState('Usuário');
 
-    const handleLogout = () => {
-        navigate('/login');
-    };
+  useEffect(() => {
+    const storedUser = localStorage.getItem('agile_pulse_current_user');
+    if (!storedUser) {
+      navigate('/login');
+      return;
+    }
+    const user = JSON.parse(storedUser);
+    setUserName(user.name || 'Usuário');
+  }, [navigate]);
 
-    return (
-        <div className="dashboard-container">
-            <header className="dashboard-header glass-panel">
-                <div className="logo-section">
-                    <Activity size={32} color="var(--primary)" />
-                    <h2>Agile Pulse</h2>
-                </div>
-                <div className="user-section">
-                    <span className="user-name">Usuário</span>
-                    <Button variant="ghost" onClick={handleLogout} className="logout-btn">
-                        Sair <LogOut size={18} />
-                    </Button>
-                </div>
-            </header>
+  const handleLogout = () => {
+    localStorage.removeItem('agile_pulse_token');
+    localStorage.removeItem('agile_pulse_current_user');
+    navigate('/login');
+  };
 
-            <main className="dashboard-content animate-fade-in">
-                <div className="empty-state glass-panel">
-                    <h3>Dashboard</h3>
-                    <p>O dashboard de monitoramento será construído aqui.</p>
-                </div>
-            </main>
+  return (
+    <div className="dashboard-container">
+      <header className="dashboard-header glass-panel">
+        <div className="logo-section">
+          <Activity size={32} color="var(--primary)" />
+          <h2>Agile Pulse</h2>
+        </div>
+        <div className="user-section">
+          <span className="user-name">{userName}</span>
+          <Button variant="ghost" onClick={handleLogout} className="logout-btn">
+            Sair <LogOut size={18} />
+          </Button>
+        </div>
+      </header>
 
-            <style>{`
+      <main className="dashboard-content animate-fade-in">
+        <div className="empty-state glass-panel">
+          <h3>Dashboard</h3>
+          <p>O dashboard de monitoramento será construído aqui.</p>
+        </div>
+      </main>
+
+      <style>{`
         .dashboard-container {
           min-height: 100vh;
           display: flex;
@@ -102,8 +115,8 @@ const Dashboard: React.FC = () => {
           margin-bottom: 1rem;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default Dashboard;
