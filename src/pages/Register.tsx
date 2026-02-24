@@ -5,132 +5,149 @@ import Input from '../components/Input';
 import Button from '../components/Button';
 
 const Register: React.FC = () => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const handleRegister = (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-        if (password !== confirmPassword) {
-            setError('As senhas não coincidem.');
-            return;
-        }
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
 
-        if (password.length < 6) {
-            setError('A senha deve ter pelo menos 6 caracteres.');
-            return;
-        }
+    if (password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
 
-        setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
-            navigate('/dashboard');
-        }, 1500);
-    };
+    setLoading(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    return (
-        <div className="auth-container animate-fade-in">
-            <div className="auth-brand glass-panel">
-                <Activity size={48} color="var(--primary)" className="brand-icon" />
-                <h1>Agile Pulse</h1>
-                <p>Potencialize a entrega da sua equipe com métricas claras.</p>
+      const data = await response.json();
 
-                <div className="features-list">
-                    <div className="feature-item">
-                        <ShieldCheck size={20} className="feature-icon" />
-                        <span>Segurança garantida para os dados do seu time</span>
-                    </div>
-                    <div className="feature-item">
-                        <ShieldCheck size={20} className="feature-icon" />
-                        <span>Acompanhamento em tempo real</span>
-                    </div>
-                    <div className="feature-item">
-                        <ShieldCheck size={20} className="feature-icon" />
-                        <span>Insights de saúde das tarefas</span>
-                    </div>
-                </div>
-            </div>
+      if (response.ok) {
+        setLoading(false);
+        navigate('/register-success');
+      } else {
+        setError(data.msg || data.message || 'Erro ao realizar cadastro.');
+      }
+    } catch (err) {
+      setError('Erro de conexão com o servidor.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            <div className="auth-card glass-panel">
-                <div className="auth-header">
-                    <h2>Criar Conta</h2>
-                    <p>Informe seus dados para começar a usar</p>
-                </div>
+  return (
+    <div className="auth-container animate-fade-in">
+      <div className="auth-brand glass-panel">
+        <Activity size={48} color="var(--primary)" className="brand-icon" />
+        <h1>Agile Pulse</h1>
+        <p>Potencialize a entrega da sua equipe com métricas claras.</p>
 
-                {error && (
-                    <div className="error-alert">
-                        {error}
-                    </div>
-                )}
+        <div className="features-list">
+          <div className="feature-item">
+            <ShieldCheck size={20} className="feature-icon" />
+            <span>Segurança garantida para os dados do seu time</span>
+          </div>
+          <div className="feature-item">
+            <ShieldCheck size={20} className="feature-icon" />
+            <span>Acompanhamento em tempo real</span>
+          </div>
+          <div className="feature-item">
+            <ShieldCheck size={20} className="feature-icon" />
+            <span>Insights de saúde das tarefas</span>
+          </div>
+        </div>
+      </div>
 
-                <form onSubmit={handleRegister} className="auth-form">
-                    <Input
-                        label="Nome Completo"
-                        type="text"
-                        placeholder="John Doe"
-                        icon={User}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
+      <div className="auth-card glass-panel">
+        <div className="auth-header">
+          <h2>Criar Conta</h2>
+          <p>Informe seus dados para começar a usar</p>
+        </div>
 
-                    <Input
-                        label="Email"
-                        type="email"
-                        placeholder="nome@empresa.com"
-                        icon={Mail}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
+        {error && (
+          <div className="error-alert">
+            {error}
+          </div>
+        )}
 
-                    <div className="form-row">
-                        <Input
-                            label="Senha"
-                            type="password"
-                            placeholder="••••••••"
-                            icon={Lock}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+        <form onSubmit={handleRegister} className="auth-form">
+          <Input
+            label="Nome Completo"
+            type="text"
+            placeholder="John Doe"
+            icon={User}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
 
-                        <Input
-                            label="Confirmar Senha"
-                            type="password"
-                            placeholder="••••••••"
-                            icon={Lock}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                    </div>
+          <Input
+            label="Email"
+            type="email"
+            placeholder="nome@empresa.com"
+            icon={Mail}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-                    <Button type="submit" fullWidth disabled={loading}>
-                        {loading ? 'Criando conta...' : (
-                            <>
-                                Finalizar Cadastro <ArrowRight size={18} />
-                            </>
-                        )}
-                    </Button>
-                </form>
+          <div className="form-row">
+            <Input
+              label="Senha"
+              type="password"
+              placeholder="••••••••"
+              icon={Lock}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
-                <div className="auth-footer" style={{ marginTop: '1.5rem' }}>
-                    <p>
-                        Já possui uma conta? <Link to="/login" className="btn-ghost">Fazer login</Link>
-                    </p>
-                </div>
-            </div>
+            <Input
+              label="Confirmar Senha"
+              type="password"
+              placeholder="••••••••"
+              icon={Lock}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
 
-            <style>{`
+          <Button type="submit" fullWidth disabled={loading}>
+            {loading ? 'Criando conta...' : (
+              <>
+                Finalizar Cadastro <ArrowRight size={18} />
+              </>
+            )}
+          </Button>
+        </form>
+
+        <div className="auth-footer" style={{ marginTop: '1.5rem' }}>
+          <p>
+            Já possui uma conta? <Link to="/login" className="btn-ghost">Fazer login</Link>
+          </p>
+        </div>
+      </div>
+
+      <style>{`
         .auth-container {
           display: flex;
           align-items: center;
@@ -251,8 +268,8 @@ const Register: React.FC = () => {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default Register;
