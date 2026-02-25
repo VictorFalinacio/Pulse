@@ -18,5 +18,5 @@ Backend: Node.js com arquitetura escalável.
 Banco de Dados: MongoDB para persistência de dados e histórico de análises.
 
 IA: Google Gemini API para processamento de linguagem natural (NLP).
-==================================================================================
+
 Diferente de dashboards convencionais, o Agile Pulse atua como um assistente técnico. Ele utiliza a experiência de Líder de Cerimónias Ágeis para instruir a IA a pensar como um gestor, focando em riscos e dependências técnicas que muitas vezes passam despercebidos em logs manuais.
