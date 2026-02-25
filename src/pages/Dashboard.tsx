@@ -114,6 +114,21 @@ const Dashboard: React.FC = () => {
           font-size: 1.5rem;
           margin-bottom: 1rem;
         }
+
+        @media (max-width: 768px) {
+          .dashboard-header {
+            padding: 1rem;
+          }
+          .user-name {
+            display: none;
+          }
+          .dashboard-content {
+            padding: 1rem;
+          }
+          .empty-state {
+            padding: 2rem 1rem;
+          }
+        }
       `}</style>
     </div>
   );
