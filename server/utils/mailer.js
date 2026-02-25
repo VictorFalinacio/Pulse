@@ -13,7 +13,8 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendVerificationEmail = async (email, token) => {
-    const url = `http://localhost:5173/verify-email?token=${token}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const url = `${frontendUrl}/verify-email?token=${token}`;
     await transporter.sendMail({
         from: `"Agile Pulse" <${process.env.EMAIL_USER}>`,
         to: email,
@@ -25,7 +26,8 @@ export const sendVerificationEmail = async (email, token) => {
 };
 
 export const sendPasswordResetEmail = async (email, token) => {
-    const url = `http://localhost:5173/reset-password?token=${token}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const url = `${frontendUrl}/reset-password?token=${token}`;
     await transporter.sendMail({
         from: `"Agile Pulse" <${process.env.EMAIL_USER}>`,
         to: email,
