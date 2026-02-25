@@ -191,6 +191,18 @@ const VerifyEmail: React.FC = () => {
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
                 }
+
+                @media (max-width: 600px) {
+                    .auth-container {
+                        padding: 1rem;
+                    }
+                    .status-card {
+                        padding: 2.5rem 1.5rem;
+                    }
+                    .status-content h2 {
+                        font-size: 1.75rem;
+                    }
+                }
             `}</style>
         </div>
     );

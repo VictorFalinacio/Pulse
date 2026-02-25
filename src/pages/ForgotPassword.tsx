@@ -124,6 +124,18 @@ const ForgotPassword: React.FC = () => {
                         transform: translateY(-2px);
                         box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
                     }
+                    @media (max-width: 600px) {
+                        .auth-container {
+                            padding: 1rem;
+                        }
+                        .success-card {
+                            padding: 2.5rem 1.5rem;
+                            gap: 1.5rem;
+                        }
+                        .auth-header h2 {
+                            font-size: 1.75rem;
+                        }
+                    }
                 `}</style>
             </div>
         );
@@ -256,6 +268,18 @@ const ForgotPassword: React.FC = () => {
                         padding: 1rem;
                         border-radius: 0.5rem;
                         font-size: 0.875rem;
+                    }
+                    @media (max-width: 600px) {
+                        .auth-container {
+                            padding: 1rem;
+                        }
+                        .forgot-card {
+                            padding: 2.5rem 1.5rem;
+                            gap: 1.5rem;
+                        }
+                        .auth-header h2 {
+                            font-size: 1.75rem;
+                        }
                     }
                 `}</style>
             </div>

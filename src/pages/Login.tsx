@@ -124,6 +124,27 @@ const Login: React.FC = () => {
         .error-alert { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border-left: 4px solid var(--danger); padding: 1rem; border-radius: 4px; font-size: 0.875rem; }
         .auth-forgot { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
         .auth-footer { text-align: center; border-top: 1px solid var(--card-border); padding-top: 1.5rem; font-size: 0.875rem; }
+
+        @media (max-width: 1000px) {
+          .auth-container {
+            flex-direction: column;
+            gap: 2rem;
+            padding: 1.5rem;
+            justify-content: flex-start;
+          }
+          .auth-brand {
+            padding: 2rem 1rem 1rem 1rem;
+            text-align: center;
+            max-width: 100%;
+          }
+          .auth-brand h1 {
+            font-size: 2.5rem;
+          }
+          .auth-card {
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+          }
+        }
       `}</style>
     </div>
   );

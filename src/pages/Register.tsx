@@ -253,19 +253,27 @@ const Register: React.FC = () => {
           .auth-container {
             flex-direction: column;
             gap: 2rem;
-            padding: 1rem;
+            padding: 1.5rem;
+            justify-content: flex-start;
           }
           .form-row {
             flex-direction: column;
             gap: 0;
           }
           .auth-brand {
-            padding: 1rem;
-            margin-top: 2rem;
+            padding: 2rem 1rem 1rem 1rem;
+            text-align: center;
+            max-width: 100%;
+          }
+          .auth-brand h1 {
+            font-size: 2.5rem;
+          }
+          .auth-brand p {
+            margin-bottom: 1.5rem;
           }
           .auth-card {
+            padding: 2rem 1.5rem;
             margin: 0 0 2rem 0;
-            padding: 1.5rem;
           }
         }
       `}</style>
