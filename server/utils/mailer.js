@@ -12,8 +12,15 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+// Detect the correct frontend URL for email links
+const getFrontendUrl = () => {
+    if (process.env.FRONTEND_URL) return process.env.FRONTEND_URL;
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+    return 'https://tracker-pulse.vercel.app';
+};
+
 export const sendVerificationEmail = async (email, token) => {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = getFrontendUrl();
     const url = `${frontendUrl}/verify-email?token=${token}`;
     await transporter.sendMail({
         from: `"Agile Pulse" <${process.env.EMAIL_USER}>`,
@@ -26,7 +33,7 @@ export const sendVerificationEmail = async (email, token) => {
 };
 
 export const sendPasswordResetEmail = async (email, token) => {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = getFrontendUrl();
     const url = `${frontendUrl}/reset-password?token=${token}`;
     await transporter.sendMail({
         from: `"Agile Pulse" <${process.env.EMAIL_USER}>`,
