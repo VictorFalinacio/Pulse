@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import * as pdfjs from 'pdfjs-dist';
+import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import Analysis from '../models/Analysis.js';
 import { analyzeText } from '../utils/gemini.js';
@@ -28,21 +28,9 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
         // Extraction Logic based on MIME type
         try {
             if (mimetype === 'application/pdf') {
-                console.log('Extraindo texto de PDF usando pdfjs-dist...');
-
-                // Convert buffer to Uint8Array for pdfjs
-                const uint8Array = new Uint8Array(buffer);
-                const loadingTask = pdfjs.getDocument({ data: uint8Array, useSystemFonts: true });
-                const pdfDoc = await loadingTask.promise;
-
-                let fullText = '';
-                for (let i = 1; i <= pdfDoc.numPages; i++) {
-                    const page = await pdfDoc.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += pageText + '\n';
-                }
-                extractedText = fullText;
+                console.log('Extraindo texto de PDF usando pdf-parse...');
+                const pdfData = await pdfParse(buffer);
+                extractedText = pdfData.text;
             } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                 console.log('Extraindo texto de DOCX...');
                 const result = await mammoth.extractRawText({ buffer: buffer });
