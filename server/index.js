@@ -5,6 +5,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
+import analysisRoutes from './routes/analysis.js';
 
 dotenv.config();
 
@@ -13,7 +14,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cors());
 
 // Request logger
@@ -35,6 +37,7 @@ mongoose.connect(MONGO_URI)
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/analysis', analysisRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ message: 'Server is running' });
