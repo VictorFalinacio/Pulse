@@ -15,8 +15,8 @@ const transporter = nodemailer.createTransport({
 // Detect the correct frontend URL for email links
 const getFrontendUrl = () => {
     if (process.env.FRONTEND_URL) return process.env.FRONTEND_URL;
-    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-    return 'https://tracker-pulse.vercel.app';
+    if (process.env.VERCEL) return `https://tracker-pulse.vercel.app`;
+    return 'http://localhost:5173';
 };
 
 export const sendVerificationEmail = async (email, token) => {
