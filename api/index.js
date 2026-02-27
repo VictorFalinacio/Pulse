@@ -19,22 +19,10 @@ const app = express();
 app.use(helmet());
 
 const corsOptions = {
-    origin: (origin, callback) => {
-        const allowed = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3000')
-            .split(',')
-            .map(o => o.trim());
-        
-        if (!origin || allowed.includes(origin) || process.env.NODE_ENV === 'development') {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:3000'],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
-    maxAge: 86400
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
 
@@ -66,16 +54,13 @@ if (process.env.NODE_ENV === 'development') {
 
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
-    console.error('⚠️ MONGO_URI not configured - database operations will fail');
+    console.error('MONGO_URI is not defined in .env file');
+    process.exit(1);
 }
 
-if (MONGO_URI) {
-    mongoose.connect(MONGO_URI)
-        .then(() => console.log('✓ Connected to MongoDB'))
-        .catch((err) => console.error('✗ MongoDB connection error:', err.message));
-} else {
-    console.warn('⚠️ Running without database connection - API will not function properly');
-}
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => console.error('MongoDB connection error:', err));
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/analysis', analysisRoutes);

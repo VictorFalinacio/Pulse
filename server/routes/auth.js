@@ -134,7 +134,7 @@ router.post('/verify-email', async (req, res) => {
     }
 });
 
-// Keep GET endpoint for backward compatibility with email links
+// Keep GET endpoint for backward compatibility with email links (will redirect to frontend)
 router.get('/verify/:token', async (req, res) => {
     try {
         const user = await User.findOne({ 
@@ -151,12 +151,11 @@ router.get('/verify/:token', async (req, res) => {
         user.verificationTokenExpiresAt = undefined;
         await user.save();
         
-        res.json({ msg: 'Email verificado com sucesso! Você já pode fazer login.' });
+        // Redirect to success page on frontend
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.redirect(`${frontendUrl}/register-success`);
     } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error('Erro ao verificar email via GET:', err);
-        }
-        res.status(500).json({ msg: 'Erro ao verificar email.' });
+        res.redirect('http://localhost:5173/login?error=verification_failed');
     }
 });
 
