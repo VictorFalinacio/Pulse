@@ -66,10 +66,13 @@ const ensureMongoConnection = async () => {
             await mongoose.connect(MONGO_URI);
             mongoConnected = true;
             console.log('✅ Connected to MongoDB');
+            return true;
         } catch (err) {
-            console.error('❌ MongoDB connection error:', err);
+            console.error('❌ MongoDB connection error:', err.message);
+            return false;
         }
     }
+    return mongoConnected;
 };
 
 if (MONGO_URI) {
@@ -79,8 +82,11 @@ if (MONGO_URI) {
 }
 
 app.use('/api/', async (req, res, next) => {
-    if (!mongoConnected && MONGO_URI) {
-        await ensureMongoConnection();
+    console.log(`[MIDDLEWARE] Processing ${req.method} ${req.path}`);
+    
+    const connected = await ensureMongoConnection();
+    if (!connected && MONGO_URI) {
+        console.warn(`[MIDDLEWARE] MongoDB not connected for ${req.path}`);
     }
     next();
 });
@@ -92,7 +98,8 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         message: 'Server is running',
         mongoConnected: mongoConnected,
-        hasMongoUri: !!MONGO_URI
+        hasMongoUri: !!MONGO_URI,
+        mongoReadyState: mongoose.connection?.readyState
     });
 });
 
