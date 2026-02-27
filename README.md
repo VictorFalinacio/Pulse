@@ -2,7 +2,8 @@ Agile Pulse: Dashboard de Governança Ágil com IA.
 
 O Agile Pulse é uma plataforma Full Stack desenvolvida para monitorar dados on-sprint de squads em tempo real, servindo como uma ferramenta de apoio para Product Owners e Scrum Masters. O projeto integra Inteligência Artificial para processar documentos de cerimónias ágeis (Dailies, Reviews, Plannings) e extrair insights estratégicos automaticamente.
 
-Funcionalidades Principais
+Funcionalidades Principais.
+
 Monitorização em Tempo Real: Visualização de dados e métricas de desempenho de squads durante a sprint.
 
 Análise de Documentos via IA: Upload de arquivos (PDF/TXT) com processamento via API do Gemini para identificação automática de impedimentos (blockers) e próximos passos.
@@ -11,7 +12,8 @@ Gestão de Governança: Transformação de relatos de reuniões em relatórios e
 
 Autenticação Segura: Sistema completo de cadastro e login com validação de utilizadores e proteção de rotas.
 
-Tecnologias Utilizadas
+Tecnologias Utilizadas.
+
 Frontend: React.js com deploy na Vercel.
 
 Backend: Node.js com arquitetura escalável.
