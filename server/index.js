@@ -54,19 +54,46 @@ if (process.env.NODE_ENV === 'development') {
 
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
-    console.error('MONGO_URI is not defined in .env file');
-    process.exit(1);
+    console.warn('⚠️  MONGO_URI is not defined in environment variables');
+    console.warn('Database operations will not work. Run "npm run server" with proper .env configuration.');
 }
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('MongoDB connection error:', err));
+let mongoConnected = false;
+
+const ensureMongoConnection = async () => {
+    if (!mongoConnected && MONGO_URI) {
+        try {
+            await mongoose.connect(MONGO_URI);
+            mongoConnected = true;
+            console.log('✅ Connected to MongoDB');
+        } catch (err) {
+            console.error('❌ MongoDB connection error:', err);
+        }
+    }
+};
+
+if (MONGO_URI) {
+    ensureMongoConnection().catch(err => {
+        console.error('Initial MongoDB connection failed:', err);
+    });
+}
+
+app.use('/api/', async (req, res, next) => {
+    if (!mongoConnected && MONGO_URI) {
+        await ensureMongoConnection();
+    }
+    next();
+});
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/analysis', analysisRoutes);
 
 app.get('/api/health', (req, res) => {
-    res.json({ message: 'Server is running' });
+    res.json({ 
+        message: 'Server is running',
+        mongoConnected: mongoConnected,
+        hasMongoUri: !!MONGO_URI
+    });
 });
 
 const PORT = process.env.PORT || 5000;
