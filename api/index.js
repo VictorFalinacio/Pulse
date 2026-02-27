@@ -54,13 +54,16 @@ if (process.env.NODE_ENV === 'development') {
 
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
-    console.error('MONGO_URI is not defined in .env file');
-    process.exit(1);
+    console.error('⚠️ MONGO_URI not configured - database operations will fail');
 }
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('MongoDB connection error:', err));
+if (MONGO_URI) {
+    mongoose.connect(MONGO_URI)
+        .then(() => console.log('✓ Connected to MongoDB'))
+        .catch((err) => console.error('✗ MongoDB connection error:', err.message));
+} else {
+    console.warn('⚠️ Running without database connection - API will not function properly');
+}
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/analysis', analysisRoutes);
