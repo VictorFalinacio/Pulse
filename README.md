@@ -1,6 +1,6 @@
 # Agile Pulse: Análise Inteligente de Cerimônias Ágeis
 
-## 📋 Propósito
+##  Propósito
 
 **Agile Pulse** é uma plataforma que transforma atas de reuniões ágeis (Dailies, Reviews, Plannings) em relatórios estruturados e acionáveis usando Inteligência Artificial.
 
