@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Lock, ArrowRight, CheckCircle2, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { API_URL } from '../config';
+import { validatePasswordStrength, getPasswordStrengthLevel } from '../utils/passwordValidator';
 import Input from '../components/Input';
 import Button from '../components/Button';
 
@@ -14,6 +15,14 @@ const ResetPassword: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+    const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
+    // Handle password change and show validation errors
+    const handlePasswordChange = (value: string) => {
+        setPassword(value);
+        const validation = validatePasswordStrength(value);
+        setPasswordErrors(validation.errors);
+    };
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,19 +34,27 @@ const ResetPassword: React.FC = () => {
             return;
         }
 
-        if (password.length < 6) {
+        if (!token) {
             setStatus('error');
-            setMessage('A senha deve ter pelo menos 6 caracteres.');
+            setMessage('Token inválido ou ausente.');
+            return;
+        }
+
+        // Validate password strength
+        const passwordValidation = validatePasswordStrength(password);
+        if (!passwordValidation.isValid) {
+            setStatus('error');
+            setMessage(passwordValidation.errors[0]);
             return;
         }
 
         setStatus('loading');
 
         try {
-            const response = await fetch(`${API_URL}/api/auth/reset-password/${token}`, {
+            const response = await fetch(`${API_URL}/api/auth/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password }),
+                body: JSON.stringify({ token, password }),
             });
 
             const data = await response.json();
@@ -177,15 +194,51 @@ const ResetPassword: React.FC = () => {
                 )}
 
                 <form onSubmit={handleReset} className="auth-form">
-                    <Input
-                        label="Nova Senha"
-                        type="password"
-                        placeholder="••••••••"
-                        icon={Lock}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
+                    <div>
+                        <Input
+                            label="Nova Senha"
+                            type="password"
+                            placeholder="••••••••"
+                            icon={Lock}
+                            value={password}
+                            onChange={(e) => handlePasswordChange(e.target.value)}
+                            required
+                        />
+                        {password && (
+                            <div style={{ marginTop: '8px' }}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontSize: '12px',
+                                    color: getPasswordStrengthLevel(password).color
+                                }}>
+                                    <div style={{
+                                        width: '100%',
+                                        height: '4px',
+                                        backgroundColor: 'rgba(255,255,255,0.1)',
+                                        borderRadius: '2px',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div style={{
+                                            width: `${(getPasswordStrengthLevel(password).level === 'weak' ? 33 : getPasswordStrengthLevel(password).level === 'medium' ? 66 : 100)}%`,
+                                            height: '100%',
+                                            backgroundColor: getPasswordStrengthLevel(password).color,
+                                            transition: 'width 0.3s ease'
+                                        }} />
+                                    </div>
+                                    <span>{getPasswordStrengthLevel(password).level}</span>
+                                </div>
+                                {passwordErrors.length > 0 && (
+                                    <div style={{ marginTop: '8px', fontSize: '12px', color: '#ef4444' }}>
+                                        {passwordErrors.map((err, i) => (
+                                            <div key={i}>• {err}</div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
                     <Input
                         label="Confirmar Nova Senha"
@@ -197,7 +250,7 @@ const ResetPassword: React.FC = () => {
                         required
                     />
 
-                    <Button type="submit" fullWidth disabled={status === 'loading'} className="glow-button">
+                    <Button type="submit" fullWidth disabled={status === 'loading' || !password || validatePasswordStrength(password).errors.length > 0} className="glow-button">
                         {status === 'loading' ? 'Redefinindo...' : (
                             <>
                                 Redefinir Senha <ArrowRight size={18} />

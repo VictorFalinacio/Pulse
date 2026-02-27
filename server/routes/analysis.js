@@ -8,12 +8,38 @@ import authMiddleware from '../utils/authMiddleware.js';
 
 const router = express.Router();
 
-// Configuration for Multer (Memory Storage)
 const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowedMimes = [
+            'application/pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain'
+        ];
+        
+        if (allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Formato de arquivo não suportado. Use PDF, DOCX ou TXT.'), false);
+        }
+    }
 });
+
+const validateFileMagicBytes = (buffer, mimetype) => {
+    const pdf = buffer.slice(0, 4).toString('hex').startsWith('25504446');
+    const docx = buffer.slice(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+    const txt = true;
+    
+    if (mimetype === 'application/pdf' && !pdf) {
+        return false;
+    }
+    if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && !docx) {
+        return false;
+    }
+    return true;
+};
 
 router.post('/analisar', authMiddleware, upload.single('file'), async (req, res) => {
     try {
@@ -22,40 +48,64 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
         }
 
         const { originalname, mimetype, buffer } = req.file;
-        console.log(`Recebido arquivo: ${originalname} (${mimetype})`);
+        
+        // Log only non-sensitive info in development
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`Processing file: ${originalname.substring(0, 20)}...`);
+        }
+
         let extractedText = '';
+
+        // Validate magic bytes
+        if (!validateFileMagicBytes(buffer, mimetype)) {
+            return res.status(400).json({ msg: 'Arquivo inválido ou corrompido.' });
+        }
 
         // Extraction Logic based on MIME type
         try {
             if (mimetype === 'application/pdf') {
-                console.log('Extraindo texto de PDF usando pdf-parse...');
                 const pdfData = await pdfParse(buffer);
                 extractedText = pdfData.text;
             } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                console.log('Extraindo texto de DOCX...');
                 const result = await mammoth.extractRawText({ buffer: buffer });
                 extractedText = result.value;
             } else if (mimetype === 'text/plain') {
-                console.log('Extraindo texto de TXT...');
                 extractedText = buffer.toString('utf-8');
             } else {
                 return res.status(400).json({ msg: 'Formato de arquivo não suportado. Use PDF, DOCX ou TXT.' });
             }
         } catch (extractError) {
-            console.error('Erro na extração de texto:', extractError);
-            return res.status(400).json({ msg: 'Falha ao ler o conteúdo do arquivo.', error: extractError.message });
+            if (process.env.NODE_ENV === 'development') {
+                console.error('Erro na extração de texto:', extractError);
+            }
+            return res.status(400).json({ msg: 'Falha ao ler o conteúdo do arquivo.' });
         }
 
         if (!extractedText || extractedText.trim().length === 0) {
-            console.warn('Arquivo vazio ou sem texto detectável.');
             return res.status(400).json({ msg: 'Não foi possível extrair texto do arquivo (arquivo vazio ou sem texto).' });
         }
 
-        console.log(`Texto extraído (${extractedText.length} caracteres). Enviando para Gemini...`);
+        // Limit text length for API
+        if (extractedText.length > 50000) {
+            extractedText = extractedText.substring(0, 50000);
+        }
 
-        // AI Analysis
-        const aiSummary = await analyzeText(extractedText);
-        console.log('Análise da IA recebida com sucesso.');
+        // AI Analysis with timeout
+        let aiSummary;
+        try {
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Análise expirou')), 30000) // 30 seconds timeout
+            );
+            aiSummary = await Promise.race([
+                analyzeText(extractedText),
+                timeoutPromise
+            ]);
+        } catch (analysisError) {
+            if (process.env.NODE_ENV === 'development') {
+                console.error('Analysis timeout or error:', analysisError.message);
+            }
+            return res.status(500).json({ msg: 'Análise levou muito tempo. Tente um arquivo menor.' });
+        }
 
         // Save to MongoDB
         const newAnalysis = new Analysis({
@@ -67,13 +117,14 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
         });
 
         await newAnalysis.save();
-        console.log('Análise salva no MongoDB.');
 
         res.json(newAnalysis);
 
     } catch (error) {
-        console.error('Analysis Route Error:', error);
-        res.status(500).json({ msg: 'Erro ao processar o arquivo.', error: error.message });
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Analysis Route Error:', error.message);
+        }
+        res.status(500).json({ msg: 'Erro ao processar o arquivo.' });
     }
 });
 
@@ -90,30 +141,24 @@ router.get('/historico', authMiddleware, async (req, res) => {
 // Route to delete an analysis
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
-        console.log('DELETE request for analysis:', req.params.id);
-        console.log('User from token:', JSON.stringify(req.user));
-
         const analysis = await Analysis.findById(req.params.id);
 
         if (!analysis) {
-            console.log('Analysis not found');
             return res.status(404).json({ msg: 'Análise não encontrada.' });
         }
 
-        // Check ownership - handle different JWT payload structures
+        // Check ownership
         const userId = req.user.id || req.user._id;
-        console.log('Analysis userId:', analysis.userId.toString(), 'Token userId:', userId);
-
         if (analysis.userId.toString() !== userId) {
-            console.log('Ownership check failed');
             return res.status(401).json({ msg: 'Não autorizado para excluir esta análise.' });
         }
 
         await Analysis.findByIdAndDelete(req.params.id);
-        console.log('Analysis deleted successfully');
         res.json({ msg: 'Análise excluída com sucesso.' });
     } catch (error) {
-        console.error('Delete Analysis Error:', error);
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Delete Analysis Error:', error);
+        }
         res.status(500).json({ msg: 'Erro ao excluir a análise.' });
     }
 });
