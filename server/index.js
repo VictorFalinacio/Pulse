@@ -19,10 +19,22 @@ const app = express();
 app.use(helmet());
 
 const corsOptions = {
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:3000'],
+    origin: (origin, callback) => {
+        const allowed = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3000')
+            .split(',')
+            .map(o => o.trim());
+        
+        if (!origin || allowed.includes(origin) || process.env.NODE_ENV === 'development') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200,
+    maxAge: 86400
 };
 app.use(cors(corsOptions));
 

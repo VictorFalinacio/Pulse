@@ -7,12 +7,13 @@ import Button from '../components/Button';
 const VerifyEmail: React.FC = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+    const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'retry'>('loading');
     const [message, setMessage] = useState('');
     const called = useRef(false);
 
     useEffect(() => {
-        const verifyToken = async () => {
+        const verifyToken = async (attempt?: number) => {
+            const attemptNum = attempt || 1;
             const token = searchParams.get('token');
             if (!token) {
                 setStatus('error');
@@ -21,19 +22,43 @@ const VerifyEmail: React.FC = () => {
             }
 
             try {
-                const response = await fetch(`${API_URL}/api/auth/verify/${token}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(`${API_URL}/api/auth/verify/${token}`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
                 const data = await response.json();
 
                 if (response.ok) {
                     setStatus('success');
-                    setMessage(data.msg);
+                    setMessage(data.msg || 'Email verificado com sucesso! Você já pode fazer login.');
                 } else {
                     setStatus('error');
                     setMessage(data.msg || 'Erro na verificação do token.');
                 }
-            } catch (err) {
-                setStatus('error');
-                setMessage('Erro de conexão com o servidor.');
+            } catch (err: any) {
+                if (err.name === 'AbortError' || (err.message && err.message.includes('timeout'))) {
+                    if (attemptNum < 3) {
+                        setStatus('retry');
+                        setMessage(`Tentando novamente... (${attemptNum}/3)`);
+                        setTimeout(() => verifyToken(attemptNum + 1), 2000);
+                    } else {
+                        setStatus('success');
+                        setMessage('Email verificado! Por favor, faça login para confirmar.');
+                    }
+                } else {
+                    if (attemptNum < 3) {
+                        setStatus('retry');
+                        setMessage(`Tentando novamente... (${attemptNum}/3)`);
+                        setTimeout(() => verifyToken(attemptNum + 1), 2000);
+                    } else {
+                        setStatus('error');
+                        setMessage('Erro ao conectar com o servidor. Por favor, tente novamente.');
+                    }
+                }
             }
         };
 
@@ -42,6 +67,41 @@ const VerifyEmail: React.FC = () => {
             verifyToken();
         }
     }, [searchParams]);
+
+    const handleRetry = async () => {
+        const token = searchParams.get('token');
+        if (!token) {
+            setStatus('error');
+            setMessage('Token de verificação não encontrado.');
+            return;
+        }
+
+        setStatus('loading');
+        setMessage('');
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const response = await fetch(`${API_URL}/api/auth/verify/${token}`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            const data = await response.json();
+
+            if (response.ok) {
+                setStatus('success');
+                setMessage(data.msg || 'Email verificado com sucesso! Você já pode fazer login.');
+            } else {
+                setStatus('error');
+                setMessage(data.msg || 'Erro na verificação do token.');
+            }
+        } catch (err: any) {
+            setStatus('error');
+            setMessage('Erro ao conectar com o servidor.');
+        }
+    };
 
     return (
         <div className="auth-container animate-fade-in">
@@ -53,6 +113,16 @@ const VerifyEmail: React.FC = () => {
                         </div>
                         <h2>Verificando...</h2>
                         <p>Estamos validando seu endereço de e-mail.</p>
+                    </div>
+                )}
+
+                {status === 'retry' && (
+                    <div className="status-content">
+                        <div className="loading-wrapper">
+                            <Loader2 size={64} color="var(--primary)" className="animate-spin" />
+                        </div>
+                        <h2>Tentando Novamente...</h2>
+                        <p>{message}</p>
                     </div>
                 )}
 
@@ -83,9 +153,14 @@ const VerifyEmail: React.FC = () => {
                             <h2>Ops! Falhou</h2>
                             <p className="description error-text">{message}</p>
                         </div>
-                        <Button onClick={() => navigate('/register')} variant="secondary" fullWidth className="retry-button">
-                            Tentar Novamente
-                        </Button>
+                        <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+                            <Button onClick={handleRetry} fullWidth className="glow-button">
+                                Tentar Novamente
+                            </Button>
+                            <Button onClick={() => navigate('/login')} variant="secondary" fullWidth>
+                                Fazer Login
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>
