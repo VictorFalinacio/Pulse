@@ -162,7 +162,7 @@ const Register: React.FC = () => {
                       overflow: 'hidden'
                     }}>
                       <div style={{
-                        width: `${(getPasswordStrengthLevel(password).level === 'weak' ? 33 : getPasswordStrengthLevel(password).level === 'medium' ? 66 : 100)}%`,
+                      width: `${(getPasswordStrengthLevel(password).level === 'fraco' ? 33 : getPasswordStrengthLevel(password).level === 'médio' ? 66 : 100)}%`,
                         height: '100%',
                         backgroundColor: passwordStrength.color,
                         transition: 'width 0.3s ease'
