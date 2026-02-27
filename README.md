@@ -1,8 +1,40 @@
-# Agile Pulse: Dashboard de Governança Ágil com IA
+# Agile Pulse: Análise Inteligente de Cerimônias Ágeis
 
-O **Agile Pulse** é uma plataforma Full Stack desenvolvida para monitorar dados on-sprint de squads em tempo real. Servindo como uma ferramenta de apoio para **Product Owners** e **Scrum Masters**, o projeto integra Inteligência Artificial para processar documentos de cerimônias ágeis (Dailies, Reviews, Plannings) e extrair insights estratégicos automaticamente.
+## 📋 Propósito
 
-Diferente de dashboards convencionais, o Agile Pulse atua como um **assistente técnico**. Ele utiliza a experiência de Líder de Cerimônias Ágeis para instruir a IA a pensar como um gestor, focando em riscos e dependências técnicas.
+**Agile Pulse** é uma plataforma que transforma atas de reuniões ágeis (Dailies, Reviews, Plannings) em relatórios estruturados e acionáveis usando Inteligência Artificial.
+
+A missão é **eliminar overhead administrativo** de Product Owners e Scrum Masters, automatizando a extração de:
+-  Impedimentos e blockers
+-  Ações a serem tomadas
+-  Riscos potenciais para a entrega
+
+Ao invés de ler longas atas manualmente, gerentes obtêm em segundos um diagnóstico profissional estruturado.
 
 ---
+
+##  Arquitetura & Como Foi Feito
+
+### Stack Tecnológico
+
+```
+Frontend:
+├── React 19.2 + TypeScript
+├── Vite (build tool)
+├── React Router (navegação)
+├── TailwindCSS (estilos)
+└── Lucide React (ícones)
+
+Backend:
+├── Node.js + Express 5.2
+├── MongoDB 9 (banco de dados)
+├── Mongoose (ODM)
+├── Google Gemini 2.5 Flash (IA)
+└── Nodemailer (email)
+
+Deployment:
+├── Frontend: Vercel
+├── Backend: Vercel Serverless Functions
+└── Database: MongoDB Atlas
+```
 
