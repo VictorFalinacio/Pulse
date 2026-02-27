@@ -137,39 +137,31 @@ router.post('/verify-email', async (req, res) => {
 // Keep GET endpoint for backward compatibility with email links
 router.get('/verify/:token', async (req, res) => {
     const token = req.params.token;
-    console.log(`[VERIFY EMAIL] GET request received with token: ${token?.substring(0, 10)}...`);
     
     try {
-        // Check database connection
-        const connectionState = User.collection.conn.readyState;
-        console.log(`[VERIFY EMAIL] MongoDB connection state: ${connectionState}`);
-        
         if (!token) {
-            console.error('[VERIFY EMAIL] Token not provided');
             return res.status(400).json({ msg: 'Token é obrigatório.' });
         }
 
-        console.log('[VERIFY EMAIL] Searching for user with token...');
         const user = await User.findOne({ 
             verificationToken: token,
             verificationTokenExpiresAt: { $gt: new Date() }
         });
 
         if (!user) {
-            console.error(`[VERIFY EMAIL] No user found with token: ${token.substring(0, 10)}...`);
             return res.status(400).json({ msg: 'Token inválido ou expirado.' });
         }
 
-        console.log(`[VERIFY EMAIL] User found: ${user.email}, marking as verified...`);
         user.isVerified = true;
         user.verificationToken = undefined;
         user.verificationTokenExpiresAt = undefined;
         await user.save();
         
-        console.log(`[VERIFY EMAIL] User verified successfully: ${user.email}`);
         res.json({ msg: 'Email verificado com sucesso! Você já pode fazer login.' });
     } catch (err) {
-        console.error('[VERIFY EMAIL] Error:', err);
+        if (process.env.NODE_ENV === 'development') {
+            console.error(err);
+        }
         res.status(500).json({ msg: 'Erro ao verificar email.' });
     }
 });

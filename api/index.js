@@ -77,22 +77,14 @@ const ensureMongoConnection = async () => {
     return mongoConnected;
 };
 
-// Try to connect on startup but don't crash if it fails
 if (MONGO_URI) {
     ensureMongoConnection().catch(err => {
         console.error('Initial MongoDB connection failed:', err);
-        // In production, we want the function to still work
     });
 }
 
-// Middleware to ensure connection before API calls - MOVED BEFORE AUTH LIMITER
 app.use('/api/', async (req, res, next) => {
-    console.log(`[MIDDLEWARE] Processing ${req.method} ${req.path}`);
-    
     const connected = await ensureMongoConnection();
-    if (!connected && MONGO_URI) {
-        console.warn(`[MIDDLEWARE] MongoDB not connected for ${req.path}`);
-    }
     next();
 });
 
