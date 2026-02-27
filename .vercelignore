@@ -1,0 +1,8 @@
+# Vercel Ignore
+node_modules
+.env
+.env.local
+.env.*.local
+.git
+README.md
+test-gemini.js
