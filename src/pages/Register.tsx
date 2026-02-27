@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, ShieldCheck, Activity } from 'lucide-react';
 import { API_URL } from '../config';
+import { validatePasswordStrength, getPasswordStrengthLevel } from '../utils/passwordValidator';
 import Input from '../components/Input';
 import Button from '../components/Button';
 
@@ -12,8 +13,16 @@ const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   const navigate = useNavigate();
+
+  // Handle password change and show validation errors
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    const validation = validatePasswordStrength(value);
+    setPasswordErrors(validation.errors);
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,8 +33,21 @@ const Register: React.FC = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.');
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.errors[0]);
+      return;
+    }
+
+    // Basic email validation
+    if (!email.includes('@')) {
+      setError('Email inválido.');
+      return;
+    }
+
+    if (name.trim().length < 2) {
+      setError('Nome deve ter pelo menos 2 caracteres.');
       return;
     }
 
@@ -53,6 +75,8 @@ const Register: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const passwordStrength = getPasswordStrengthLevel(password);
 
   return (
     <div className="auth-container animate-fade-in">
@@ -111,15 +135,51 @@ const Register: React.FC = () => {
           />
 
           <div className="form-row">
-            <Input
-              label="Senha"
-              type="password"
-              placeholder="••••••••"
-              icon={Lock}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div style={{ flex: 1 }}>
+              <Input
+                label="Senha"
+                type="password"
+                placeholder="••••••••"
+                icon={Lock}
+                value={password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                required
+              />
+              {password && (
+                <div style={{ marginTop: '8px' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '12px',
+                    color: passwordStrength.color
+                  }}>
+                    <div style={{
+                      width: '100%',
+                      height: '4px',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      borderRadius: '2px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${(getPasswordStrengthLevel(password).level === 'weak' ? 33 : getPasswordStrengthLevel(password).level === 'medium' ? 66 : 100)}%`,
+                        height: '100%',
+                        backgroundColor: passwordStrength.color,
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                    <span>{passwordStrength.level}</span>
+                  </div>
+                  {passwordErrors.length > 0 && (
+                    <div style={{ marginTop: '8px', fontSize: '12px', color: '#ef4444' }}>
+                      {passwordErrors.map((err, i) => (
+                        <div key={i}>• {err}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <Input
               label="Confirmar Senha"
@@ -132,7 +192,7 @@ const Register: React.FC = () => {
             />
           </div>
 
-          <Button type="submit" fullWidth disabled={loading}>
+          <Button type="submit" fullWidth disabled={loading || !password || validatePasswordStrength(password).errors.length > 0}>
             {loading ? 'Criando conta...' : (
               <>
                 Finalizar Cadastro <ArrowRight size={18} />

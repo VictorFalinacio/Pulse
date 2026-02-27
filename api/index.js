@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from '../server/routes/auth.js';
@@ -14,17 +16,42 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(cors());
+app.use(helmet());
 
-// Request logger
-app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
+const corsOptions = {
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
+
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Muitas requisições deste IP, tente novamente mais tarde.'
 });
 
-// MongoDB Connection
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: 'Muitas tentativas de autenticação, tente novamente em 15 minutos.'
+});
+
+app.use(generalLimiter);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+if (process.env.NODE_ENV === 'development') {
+    app.use((req, res, next) => {
+        if (!req.path.includes('password') && !req.path.includes('token')) {
+            console.log(`${req.method} ${req.path}`);
+        }
+        next();
+    });
+}
+
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
     console.error('MONGO_URI is not defined in .env file');
@@ -35,8 +62,7 @@ mongoose.connect(MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch((err) => console.error('MongoDB connection error:', err));
 
-// Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/analysis', analysisRoutes);
 
 app.get('/api/health', (req, res) => {
