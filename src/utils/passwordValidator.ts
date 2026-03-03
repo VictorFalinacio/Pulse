@@ -38,7 +38,7 @@ export const getPasswordStrengthLevel = (password: string) => {
     if (/[0-9]/.test(password)) score++;
     if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
 
-    if (score <= 2) return { level: 'weak', color: '#ef4444' };
-    if (score <= 4) return { level: 'medium', color: '#f59e0b' };
-    return { level: 'strong', color: '#10b981' };
+    if (score <= 2) return { level: 'fraco', color: '#ef4444' };
+    if (score <= 4) return { level: 'mediano', color: '#f59e0b' };
+    return { level: 'forte', color: '#10b981' };
 };
