@@ -214,77 +214,76 @@ const Register: React.FC = () => {
           align-items: center;
           justify-content: center;
           flex: 1;
-          gap: 4rem;
+          gap: 6rem;
           padding: 2rem;
           min-height: 100vh;
-          overflow-y: auto;
+          background: #000;
         }
 
         .auth-brand {
           max-width: 440px;
-          padding: 3rem;
+          padding: 2rem;
           text-align: left;
-          background: transparent;
-          border: none;
-          box-shadow: none;
         }
 
         .auth-brand .brand-icon {
-          margin-bottom: 1.5rem;
-          filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.6));
+          margin-bottom: 2rem;
+          color: var(--primary);
+        }
+
+        .auth-brand h1 {
+          font-size: 3.5rem;
+          font-weight: 900;
+          color: #fff;
+          margin-bottom: 1rem;
+          letter-spacing: -0.05em;
         }
 
         .auth-brand p {
           color: var(--text-secondary);
-          font-size: 1.125rem;
-          margin-top: 0.5rem;
-          margin-bottom: 2.5rem;
-          line-height: 1.6;
+          font-size: 1.25rem;
+          margin-bottom: 3rem;
+          line-height: 1.4;
         }
 
         .features-list {
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 1.5rem;
         }
 
         .feature-item {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: 1.25rem;
           color: var(--text-primary);
+          font-size: 1.1rem;
         }
 
         .feature-icon {
-          color: var(--success);
+          color: var(--primary);
         }
 
         .auth-card {
           width: 100%;
-          max-width: 480px;
-          padding: 2.5rem;
+          max-width: 520px;
+          padding: 3.5rem;
           display: flex;
           flex-direction: column;
-          gap: 2rem;
-          margin: 2rem 0;
+          gap: 2.5rem;
+          background: #0a0a0a;
+          border: 1px solid var(--card-border);
+          border-radius: 16px;
         }
 
         .auth-header h2 {
-          font-size: 1.75rem;
+          font-size: 2rem;
+          font-weight: 800;
           margin-bottom: 0.5rem;
         }
 
         .auth-header p {
           color: var(--text-secondary);
-        }
-
-        .error-alert {
-          background: rgba(239, 68, 68, 0.1);
-          color: #fca5a5;
-          border-left: 4px solid var(--danger);
-          padding: 1rem;
-          border-radius: 4px;
-          font-size: 0.875rem;
         }
 
         .auth-form {
@@ -294,26 +293,22 @@ const Register: React.FC = () => {
 
         .form-row {
           display: flex;
-          gap: 1rem;
-        }
-
-        .form-row > div {
-          flex: 1;
+          gap: 1.25rem;
         }
 
         .auth-footer {
           text-align: center;
-          font-size: 0.875rem;
+          font-size: 0.95rem;
           color: var(--text-secondary);
-          padding-top: 1rem;
+          padding-top: 2rem;
           border-top: 1px solid var(--card-border);
         }
 
-        @media (max-width: 1000px) {
+        @media (max-width: 1024px) {
           .auth-container {
             flex-direction: column;
-            gap: 2rem;
-            padding: 1.5rem;
+            gap: 3rem;
+            padding: 4rem 1.5rem;
             justify-content: flex-start;
           }
           .form-row {
@@ -321,19 +316,15 @@ const Register: React.FC = () => {
             gap: 0;
           }
           .auth-brand {
-            padding: 2rem 1rem 1rem 1rem;
+            padding: 0;
             text-align: center;
             max-width: 100%;
           }
-          .auth-brand h1 {
-            font-size: 2.5rem;
-          }
-          .auth-brand p {
-            margin-bottom: 1.5rem;
-          }
+          .auth-brand h1 { font-size: 2.8rem; }
+          .auth-brand p { margin-bottom: 2rem; }
           .auth-card {
-            padding: 2rem 1.5rem;
-            margin: 0 0 2rem 0;
+            padding: 2.5rem 1.5rem;
+            max-width: 100%;
           }
         }
       `}</style>

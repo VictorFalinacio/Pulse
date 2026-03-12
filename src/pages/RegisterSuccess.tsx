@@ -40,24 +40,23 @@ const RegisterSuccess: React.FC = () => {
                     align-items: center;
                     justify-content: center;
                     min-height: 100vh;
-                    background: #0f111a;
+                    background: #000;
                     padding: 2rem;
                 }
 
                 .success-card {
                     width: 100%;
                     max-width: 480px;
-                    padding: 3.5rem 2.5rem;
+                    padding: 4rem 3rem;
                     text-align: center;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 2rem;
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    background: rgba(23, 25, 35, 0.6);
-                    backdrop-filter: blur(12px);
-                    border-radius: 1.5rem;
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                    gap: 2.5rem;
+                    border: 1px solid var(--card-border);
+                    background: #0a0a0a;
+                    border-radius: 20px;
+                    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
                 }
 
                 .success-icon-wrapper {
@@ -67,27 +66,28 @@ const RegisterSuccess: React.FC = () => {
 
                 .check-badge {
                     position: absolute;
-                    bottom: -4px;
-                    right: -4px;
-                    background: #0f111a;
+                    bottom: -8px;
+                    right: -8px;
+                    background: #000;
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    padding: 2px;
                 }
 
                 .auth-header h2 {
-                    font-size: 2.25rem;
-                    font-weight: 700;
+                    font-size: 2.5rem;
+                    font-weight: 900;
                     color: white;
-                    margin-bottom: 1.5rem;
+                    margin-bottom: 1rem;
+                    letter-spacing: -0.04em;
                 }
 
                 .description {
-                    color: #94a3b8;
-                    font-size: 1.05rem;
+                    color: var(--text-secondary);
+                    font-size: 1.1rem;
                     line-height: 1.6;
-                    max-width: 90%;
                     margin: 0 auto;
                 }
 
@@ -99,7 +99,7 @@ const RegisterSuccess: React.FC = () => {
                 }
 
                 .sub-description {
-                    color: #64748b;
+                    color: #555;
                     font-size: 0.95rem;
                     line-height: 1.5;
                 }
@@ -107,29 +107,32 @@ const RegisterSuccess: React.FC = () => {
                 .glow-button {
                     height: 3.5rem;
                     font-size: 1.1rem;
-                    font-weight: 600;
+                    font-weight: 700;
                     background: var(--primary);
-                    transition: all 0.3s ease;
+                    color: white;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     gap: 0.75rem;
-                    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-                    border-radius: 0.75rem;
+                    border-radius: 12px;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
                 }
 
                 .glow-button:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
-                    filter: brightness(1.1);
+                    background: var(--primary-hover);
+                    box-shadow: 0 10px 30px rgba(255, 62, 62, 0.3);
                 }
 
                 @media (max-width: 480px) {
                     .success-card {
-                        padding: 2.5rem 1.5rem;
+                        padding: 3rem 1.5rem;
+                        border-radius: 16px;
                     }
                     .auth-header h2 {
-                        font-size: 1.8rem;
+                        font-size: 2rem;
                     }
                 }
             `}</style>

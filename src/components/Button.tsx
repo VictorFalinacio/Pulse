@@ -46,15 +46,15 @@ const Button: React.FC<ButtonProps> = ({
         }
 
         .btn-primary {
-          background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+          background: var(--primary);
           color: white;
-          box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.39);
+          box-shadow: 0 4px 14px 0 rgba(255, 62, 62, 0.2);
         }
 
         .btn-primary:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.23);
-          background: linear-gradient(135deg, var(--primary-hover) 0%, #4f46e5 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(255, 62, 62, 0.3);
+          background: var(--primary-hover);
         }
 
         .btn-primary:active:not(:disabled) {
@@ -62,32 +62,31 @@ const Button: React.FC<ButtonProps> = ({
         }
 
         .btn-primary:disabled {
-          opacity: 0.7;
+          opacity: 0.5;
           cursor: not-allowed;
-          background: #475569;
+          background: #444;
           box-shadow: none;
         }
 
         .btn-secondary {
-          background: transparent;
+          background: var(--secondary);
           color: var(--text-primary);
           border: 1px solid var(--card-border);
         }
 
         .btn-secondary:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: #2f3036;
+          border-color: #444;
         }
         
         .btn-ghost {
           background: transparent;
-          color: var(--primary);
-          padding: 0;
+          color: var(--text-secondary);
         }
         
         .btn-ghost:hover {
-          color: var(--primary-hover);
-          text-decoration: underline;
+          color: var(--text-primary);
+          background: rgba(255, 255, 255, 0.05);
         }
       `}</style>
     </>

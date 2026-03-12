@@ -96,12 +96,12 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete })
         .analysis-display {
           margin: 2rem auto;
           max-width: 900px;
-          padding: 3rem;
-          background: rgba(15, 17, 26, 0.95);
+          padding: 3.5rem;
+          background: #0a0a0a;
           border: 1px solid var(--card-border);
-          border-radius: 1.5rem;
-          color: #e2e8f0;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+          border-radius: 16px;
+          color: #fff;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
           position: relative;
         }
 
@@ -116,7 +116,7 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete })
         .analysis-header {
           margin-bottom: 3rem;
           padding-bottom: 2rem;
-          border-bottom: 2px solid rgba(var(--primary-rgb), 0.2);
+          border-bottom: 1px solid var(--card-border);
         }
 
         .analysis-title-group {
@@ -127,12 +127,10 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete })
         }
 
         .analysis-title-group h3 {
-          font-size: 1.8rem;
+          font-size: 2rem;
           margin: 0;
-          background: linear-gradient(135deg, var(--primary-light), var(--primary));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          font-weight: 700;
+          color: #fff;
+          font-weight: 800;
         }
 
         .analysis-meta {
@@ -151,61 +149,77 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete })
         .markdown-content {
           line-height: 1.8;
           font-size: 1.1rem;
-          color: #cbd5e1;
+          color: #d1d1d1;
         }
 
-        /* Specific styles for the new template */
-        .markdown-content h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: #fff; }
-        .markdown-content h2 { font-size: 1.8rem; margin-top: 3.5rem; color: var(--primary-light); }
+        /* Professional Report Styling */
+        .markdown-content h1 { 
+          font-size: 2.4rem; 
+          margin-bottom: 1.5rem; 
+          color: #fff; 
+          font-weight: 800;
+        }
+        
+        .markdown-content h2 { 
+          font-size: 1.8rem; 
+          margin-top: 3.5rem; 
+          margin-bottom: 1.5rem;
+          color: #fff;
+          border-bottom: 2px solid var(--primary);
+          width: fit-content;
+          padding-bottom: 0.25rem;
+        }
+        
         .markdown-content h3 { 
-            font-size: 1.4rem; 
-            margin-top: 3rem; 
-            color: var(--primary); 
-            border-left: 4px solid var(--primary);
-            padding-left: 1rem;
-            background: rgba(var(--primary-rgb), 0.05);
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
+          font-size: 1.3rem; 
+          margin-top: 2.5rem; 
+          margin-bottom: 1.25rem;
+          color: var(--primary); 
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .markdown-content hr {
           border: 0;
           height: 1px;
-          background: linear-gradient(to right, transparent, rgba(var(--primary-rgb), 0.3), transparent);
+          background: var(--card-border);
           margin: 4rem 0;
         }
 
         .markdown-content blockquote {
-          border-left: 4px solid var(--primary);
-          padding: 1rem 1.5rem;
-          background: rgba(255, 255, 255, 0.03);
-          margin: 1.5rem 0;
-          border-radius: 0 0.5rem 0.5rem 0;
+          border-left: 3px solid var(--primary);
+          padding: 1.5rem 2rem;
+          background: #111;
+          margin: 2rem 0;
+          border-radius: 0 8px 8px 0;
+          font-style: italic;
+          color: #fff;
         }
 
         .markdown-content strong {
           color: #fff;
-          font-weight: 600;
+          font-weight: 700;
         }
 
         .markdown-content ul {
-            list-style: none;
-            padding-left: 0;
+          list-style: none;
+          padding-left: 0;
+          margin: 1.5rem 0;
         }
 
         .markdown-content li {
-            position: relative;
-            padding-left: 1.5rem;
-            margin-bottom: 0.75rem;
+          position: relative;
+          padding-left: 1.75rem;
+          margin-bottom: 1rem;
         }
 
         .markdown-content li::before {
-            content: "→";
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
+          content: "—";
+          position: absolute;
+          left: 0;
+          color: var(--primary);
+          font-weight: bold;
         }
 
         @media print {

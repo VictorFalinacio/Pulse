@@ -193,9 +193,7 @@ const Dashboard: React.FC = () => {
           align-items: center;
           justify-content: space-between;
           padding: 1rem 2rem;
-          border-radius: 0;
-          background: rgba(15, 17, 26, 0.9);
-          backdrop-filter: blur(10px);
+          background: #000;
           position: sticky;
           top: 0;
           z-index: 100;
@@ -218,6 +216,7 @@ const Dashboard: React.FC = () => {
           margin: 0;
           font-weight: 700;
           letter-spacing: -0.5px;
+          color: #fff;
         }
 
         .user-section {
@@ -254,11 +253,10 @@ const Dashboard: React.FC = () => {
         }
 
         .welcome-text h1 {
-          font-size: 2.8rem;
+          font-size: 3.2rem;
           margin-bottom: 0.5rem;
-          background: linear-gradient(135deg, #fff 0%, var(--primary-light) 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: #fff;
+          font-weight: 800;
         }
 
         .welcome-text p {
@@ -284,7 +282,7 @@ const Dashboard: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          color: var(--primary-light);
+          color: var(--primary);
           padding-bottom: 0.5rem;
           border-bottom: 1px solid var(--card-border);
         }
@@ -293,6 +291,8 @@ const Dashboard: React.FC = () => {
           font-size: 1.1rem;
           margin: 0;
           font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .history-list {
@@ -307,19 +307,21 @@ const Dashboard: React.FC = () => {
           gap: 1rem;
           padding: 1.25rem;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          background: rgba(255, 255, 255, 0.02);
+          transition: all 0.2s ease;
+          background: #0a0a0a;
+          border: 1px solid var(--card-border);
+          border-radius: 12px;
         }
 
         .history-item:hover {
-          background: rgba(var(--primary-rgb), 0.1);
+          background: #111;
           border-color: var(--primary);
-          transform: translateX(8px);
+          transform: translateY(-2px);
         }
 
         .item-icon {
           color: var(--primary);
-          background: rgba(var(--primary-rgb), 0.1);
+          background: rgba(255, 62, 62, 0.1);
           padding: 8px;
           border-radius: 8px;
           width: 36px;
@@ -358,10 +360,11 @@ const Dashboard: React.FC = () => {
         }
 
         .delete-mini-btn {
-          padding: 4px !important;
+          padding: 8px !important;
           color: var(--text-secondary);
           opacity: 0;
           transition: all 0.2s ease;
+          border-radius: 6px;
         }
 
         .history-item:hover .delete-mini-btn {
@@ -370,14 +373,15 @@ const Dashboard: React.FC = () => {
 
         .delete-mini-btn:hover {
           color: var(--danger) !important;
-          background: rgba(var(--danger-rgb), 0.1) !important;
+          background: rgba(239, 68, 68, 0.1) !important;
         }
 
         .status-container {
-          padding: 2rem;
+          padding: 2.5rem;
           text-align: center;
           border: 1px dashed var(--card-border);
-          border-radius: 1rem;
+          border-radius: 12px;
+          background: #050505;
         }
 
         .status-text {

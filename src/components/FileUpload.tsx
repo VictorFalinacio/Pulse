@@ -135,30 +135,32 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
 
             <style>{`
         .file-upload-container {
-          padding: 2rem;
+          padding: 2.5rem;
           max-width: 500px;
           margin: 2rem auto;
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
+          background: #0a0a0a;
         }
 
         .drop-zone {
           border: 2px dashed var(--card-border);
-          border-radius: 1rem;
+          border-radius: 12px;
           position: relative;
-          transition: all 0.3s ease;
-          background: rgba(255, 255, 255, 0.02);
+          transition: all 0.2s ease;
+          background: #050505;
         }
 
         .drop-zone:hover {
           border-color: var(--primary);
-          background: rgba(var(--primary-rgb), 0.05);
+          background: #080808;
         }
 
         .drop-zone.has-file {
           border-style: solid;
           border-color: var(--primary);
+          background: rgba(255, 62, 62, 0.05);
         }
 
         input[type="file"] {
@@ -172,7 +174,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 3rem 1rem;
+          padding: 4rem 1.5rem;
           cursor: pointer;
           width: 100%;
         }
@@ -181,44 +183,49 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.75rem;
+          gap: 1rem;
           text-align: center;
           color: var(--text-secondary);
         }
 
         .upload-icon, .file-icon {
           color: var(--primary);
+          opacity: 0.8;
         }
 
         .file-info span {
           color: var(--text-primary);
-          font-weight: 500;
+          font-weight: 600;
+          font-size: 1.1rem;
         }
 
         .error-message {
-          color: var(--danger);
-          background: rgba(var(--danger-rgb), 0.1);
-          padding: 0.75rem;
-          border-radius: 0.5rem;
+          color: #ff6b6b;
+          background: rgba(255, 107, 107, 0.1);
+          padding: 1rem;
+          border-radius: 8px;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          font-size: 0.9rem;
+          gap: 0.75rem;
+          font-size: 0.95rem;
+          border: 1px solid rgba(255, 107, 107, 0.2);
         }
 
         .success-message {
-          color: var(--success);
-          background: rgba(var(--success-rgb), 0.1);
-          padding: 0.75rem;
-          border-radius: 0.5rem;
+          color: #51cf66;
+          background: rgba(81, 207, 102, 0.1);
+          padding: 1rem;
+          border-radius: 8px;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          font-size: 0.9rem;
+          gap: 0.75rem;
+          font-size: 0.95rem;
+          border: 1px solid rgba(81, 207, 102, 0.2);
         }
 
         .upload-button {
-          gap: 0.5rem;
+          height: 3.5rem;
+          font-size: 1.1rem;
         }
 
         @keyframes spin {

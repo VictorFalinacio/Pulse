@@ -72,42 +72,44 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           .modal-container {
             max-width: 440px;
             width: 90%;
-            padding: 2.5rem;
+            padding: 3rem;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1rem;
+            gap: 1.5rem;
             position: relative;
-            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #0a0a0a;
+            border-radius: 20px;
+            animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           }
 
           @keyframes modalSlideIn {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
           }
 
           .modal-close {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
+            top: 1.25rem;
+            right: 1.25rem;
             background: none;
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 4px;
-            border-radius: 6px;
+            padding: 6px;
+            border-radius: 8px;
             transition: all 0.2s ease;
           }
 
           .modal-close:hover {
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
           }
 
           .modal-icon {
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -116,57 +118,62 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           }
 
           .modal-icon.danger {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
           }
 
           .modal-icon.info {
-            background: rgba(var(--primary-rgb), 0.15);
+            background: rgba(255, 62, 62, 0.1);
             color: var(--primary);
           }
 
           .modal-title {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             margin: 0;
-            color: var(--text-primary);
-            font-weight: 600;
+            color: #fff;
+            font-weight: 800;
+            letter-spacing: -0.02em;
           }
 
           .modal-message {
-            font-size: 0.95rem;
+            font-size: 1rem;
             color: var(--text-secondary);
-            line-height: 1.5;
+            line-height: 1.6;
             margin: 0;
-            max-width: 360px;
+            max-width: 100%;
           }
 
           .modal-actions {
             display: flex;
             gap: 1rem;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             width: 100%;
-            justify-content: center;
+            justify-content: stretch;
+          }
+
+          .modal-actions > * {
+            flex: 1;
           }
 
           .modal-confirm-btn {
             padding: 0.75rem 1.75rem;
             border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.95rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
             transition: all 0.2s ease;
           }
 
           .modal-confirm-btn.danger {
-            background: #ef4444;
+            background: var(--danger);
             color: #fff;
           }
 
           .modal-confirm-btn.danger:hover {
-            background: #dc2626;
+            background: #d93939;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
           }
 
           .modal-confirm-btn.info {
@@ -175,8 +182,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           }
 
           .modal-confirm-btn.info:hover {
-            filter: brightness(1.1);
+            background: var(--primary-hover);
             transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(255, 62, 62, 0.2);
           }
         `}</style>
             </div>

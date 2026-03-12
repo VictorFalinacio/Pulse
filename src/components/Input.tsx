@@ -39,31 +39,31 @@ const Input: React.FC<InputProps> = ({ label, icon: Icon, error, className = '',
         .input-icon {
           position: absolute;
           left: 1rem;
-          color: #64748b;
-          transition: color 0.3s ease;
+          color: #555;
+          transition: all 0.2s ease;
         }
         .custom-input {
           width: 100%;
-          background: var(--input-bg);
-          border: 1px solid var(--input-border);
-          border-radius: 12px;
+          background: #080808;
+          border: 1px solid #1a1a1a;
+          border-radius: 10px;
           padding: 0.875rem 1rem;
           color: var(--text-primary);
           font-size: 1rem;
-          transition: all 0.3s ease;
+          transition: all 0.2s ease;
           outline: none;
         }
         .custom-input.with-icon {
           padding-left: 3rem;
         }
         .custom-input:focus {
-          border-color: var(--input-focus);
-          box-shadow: 0 0 0 4px var(--primary-glow);
-          background: rgba(15, 23, 42, 0.8);
+          border-color: var(--primary);
+          background: #0d0d0d;
+          box-shadow: 0 0 0 1px var(--primary);
         }
         .custom-input:focus + .input-icon, 
         .input-wrapper:focus-within .input-icon {
-          color: var(--input-focus);
+          color: var(--primary);
         }
         .input-wrapper.error .custom-input {
           border-color: var(--danger);
@@ -73,7 +73,7 @@ const Input: React.FC<InputProps> = ({ label, icon: Icon, error, className = '',
         }
         .input-error-msg {
           font-size: 0.75rem;
-          color: var(--danger);
+          color: #ff6b6b;
           margin-top: 0.25rem;
         }
         /* Autofill styles to preserve dark mode */
