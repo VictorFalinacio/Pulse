@@ -97,10 +97,19 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard-container">
-      <header className="dashboard-header glass-panel">
-        <div className="logo-section" onClick={handleGoHome} style={{ cursor: 'pointer' }}>
-          <Activity size={32} color="var(--primary)" />
-          <h2>Agile Pulse</h2>
+      <header className="dashboard-header">
+        <div className="header-left">
+          <div className="logo-section" onClick={handleGoHome} style={{ cursor: 'pointer' }}>
+            <Activity size={32} color="var(--primary)" />
+            <h2>Agile Pulse</h2>
+          </div>
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/sprints')} 
+            className="sprints-nav-btn"
+          >
+            Sprints
+          </Button>
         </div>
         <div className="user-section">
           <span className="user-name">{userName}</span>
@@ -198,6 +207,25 @@ const Dashboard: React.FC = () => {
           top: 0;
           z-index: 100;
           border-bottom: 1px solid var(--card-border);
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 2rem;
+        }
+
+        .sprints-nav-btn {
+          font-weight: 600;
+          color: var(--text-secondary);
+          padding: 0.5rem 1rem;
+          border-radius: 8px;
+          transition: all 0.2s ease;
+        }
+
+        .sprints-nav-btn:hover {
+          color: var(--primary);
+          background: rgba(255, 62, 62, 0.1);
         }
 
         .logo-section {
