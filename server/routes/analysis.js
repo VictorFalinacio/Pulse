@@ -101,10 +101,11 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
                 timeoutPromise
             ]);
         } catch (analysisError) {
-            if (process.env.NODE_ENV === 'development') {
-                console.error('Analysis timeout or error:', analysisError.message);
-            }
-            return res.status(500).json({ msg: 'Análise levou muito tempo. Tente um arquivo menor.' });
+            console.error('Analysis timeout or error:', analysisError);
+            const errorMsg = analysisError.message === 'Análise expirou' 
+                ? 'Análise levou muito tempo. Tente um arquivo menor.'
+                : 'Erro na Inteligência Artificial: ' + analysisError.message;
+            return res.status(500).json({ msg: errorMsg });
         }
 
         // Save to MongoDB
