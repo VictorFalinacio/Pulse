@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useImperativeHandle, forwardRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Download, FileText, Calendar, Printer, Trash2 } from 'lucide-react';
 import Button from './Button';
@@ -8,12 +8,18 @@ import { API_URL } from '../config';
 interface AnalysisDisplayProps {
   analysis: any;
   onDelete?: () => void;
+  hideActions?: boolean;
 }
 
-const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete }) => {
+const AnalysisDisplay = forwardRef(({ analysis, onDelete, hideActions = false }: AnalysisDisplayProps, ref) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useImperativeHandle(ref, () => ({
+    download: handleDownload,
+    print: handlePrint
+  }));
 
   if (!analysis) return null;
 
@@ -65,17 +71,19 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete })
 
   return (
     <div className="analysis-display glass-panel animate-fade-in printable">
-      <div className="analysis-actions no-print">
-        <Button onClick={handleDownload} variant="ghost">
-          <Download size={18} /> Baixar .doc
-        </Button>
-        <Button onClick={handlePrint} variant="ghost">
-          <Printer size={18} /> Imprimir / PDF
-        </Button>
-        <Button onClick={() => setShowDeleteConfirm(true)} variant="ghost" className="delete-btn-action">
-          <Trash2 size={18} /> Excluir
-        </Button>
-      </div>
+      {!hideActions && (
+        <div className="analysis-actions no-print">
+          <Button onClick={handleDownload} variant="ghost">
+            <Download size={18} /> Baixar .doc
+          </Button>
+          <Button onClick={handlePrint} variant="ghost">
+            <Printer size={18} /> Imprimir / PDF
+          </Button>
+          <Button onClick={() => setShowDeleteConfirm(true)} variant="ghost" className="delete-btn-action">
+            <Trash2 size={18} /> Excluir
+          </Button>
+        </div>
+      )}
 
       <div className="analysis-header">
         <div className="analysis-title-group">
@@ -103,6 +111,26 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete })
           color: #fff;
           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
           position: relative;
+        }
+
+        .sprint-summary-sidebar .analysis-display {
+          margin: 0;
+          padding: 0;
+          background: transparent;
+          border: none;
+          box-shadow: none;
+        }
+
+        .sprint-summary-sidebar .analysis-header {
+          margin-bottom: 2rem;
+        }
+
+        .sprint-summary-sidebar .analysis-title-group h3 {
+          font-size: 1.5rem;
+        }
+
+        .sprint-summary-sidebar .markdown-content {
+          font-size: 1rem;
         }
 
         .analysis-actions {
@@ -223,19 +251,60 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete })
         }
 
         @media print {
+          /* Hide everything by default */
+          body * {
+            visibility: hidden;
+          }
+          
+          /* Show only the printable area */
+          .printable, .printable * {
+            visibility: visible;
+          }
+          
+          /* Position printable area at top-left */
+          .printable {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 2cm !important;
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+
           .no-print { display: none !important; }
-          body { background: white !important; color: black !important; }
+          
+          /* Reset common dark mode elements */
           .analysis-display { 
-            box-shadow: none !important; 
-            border: none !important; 
             background: white !important; 
             color: black !important;
-            padding: 0 !important;
-            max-width: 100% !important;
           }
-          .markdown-content { color: black !important; }
-          .markdown-content h3 { background: #f1f5f9 !important; border-left: 4px solid #3b82f6 !important; }
-          .analysis-title-group h3 { -webkit-text-fill-color: black !important; }
+          
+          .markdown-content, .markdown-content * {
+            color: black !important;
+          }
+
+          .analysis-title-group h3 {
+            color: black !important;
+          }
+
+          .analysis-header {
+            border-bottom: 2px solid #000 !important;
+          }
+
+          .markdown-content h2 {
+            border-bottom: 2px solid #333 !important;
+            color: black !important;
+          }
+          
+          .markdown-content blockquote {
+            background: #f9f9f9 !important;
+            border-left: 5px solid #ccc !important;
+            color: #333 !important;
+          }
         }
 
         @media (max-width: 768px) {
@@ -273,6 +342,6 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, onDelete })
       />
     </div>
   );
-};
+});
 
 export default AnalysisDisplay;

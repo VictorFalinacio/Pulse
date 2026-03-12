@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from '../server/routes/auth.js';
 import analysisRoutes from '../server/routes/analysis.js';
+import sprintRoutes from '../server/routes/sprint.js';
 
 dotenv.config();
 
@@ -90,6 +91,7 @@ app.use('/api/', async (req, res, next) => {
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/analysis', analysisRoutes);
+app.use('/api/sprint', sprintRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ 

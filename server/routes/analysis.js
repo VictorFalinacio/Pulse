@@ -129,10 +129,13 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
     }
 });
 
-// Route to get previous analyses for the user
+// Route to get previous analyses for the user (only general ones)
 router.get('/historico', authMiddleware, async (req, res) => {
     try {
-        const history = await Analysis.find({ userId: req.user.id }).sort({ createdAt: -1 });
+        const history = await Analysis.find({ 
+            userId: req.user.id,
+            sprintId: { $exists: false }
+        }).sort({ createdAt: -1 });
         res.json(history);
     } catch (error) {
         res.status(500).json({ msg: 'Erro ao buscar histórico.' });
