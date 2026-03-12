@@ -135,7 +135,7 @@ const Register: React.FC = () => {
           />
 
           <div className="form-row">
-            <div style={{ flex: 1 }}>
+            <div className="form-group">
               <Input
                 label="Senha"
                 type="password"
@@ -146,32 +146,21 @@ const Register: React.FC = () => {
                 required
               />
               {password && (
-                <div style={{ marginTop: '8px' }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '12px',
-                    color: passwordStrength.color
-                  }}>
-                    <div style={{
-                      width: '100%',
-                      height: '4px',
-                      backgroundColor: 'rgba(255,255,255,0.1)',
-                      borderRadius: '2px',
-                      overflow: 'hidden'
-                    }}>
-                      <div style={{
-                        width: `${(getPasswordStrengthLevel(password).level === 'weak' ? 33 : getPasswordStrengthLevel(password).level === 'medium' ? 66 : 100)}%`,
-                        height: '100%',
-                        backgroundColor: passwordStrength.color,
-                        transition: 'width 0.3s ease'
-                      }} />
+                <div className="password-strength-wrapper">
+                  <div className="strength-header" style={{ color: passwordStrength.color }}>
+                    <div className="strength-bar-bg">
+                      <div 
+                        className="strength-bar-fill" 
+                        style={{
+                          width: `${(getPasswordStrengthLevel(password).level === 'weak' ? 33 : getPasswordStrengthLevel(password).level === 'medium' ? 66 : 100)}%`,
+                          backgroundColor: passwordStrength.color
+                        }} 
+                      />
                     </div>
                     <span>{passwordStrength.level}</span>
                   </div>
                   {passwordErrors.length > 0 && (
-                    <div style={{ marginTop: '8px', fontSize: '12px', color: '#ef4444' }}>
+                    <div className="password-errors">
                       {passwordErrors.map((err, i) => (
                         <div key={i}>• {err}</div>
                       ))}
@@ -181,15 +170,17 @@ const Register: React.FC = () => {
               )}
             </div>
 
-            <Input
-              label="Confirmar Senha"
-              type="password"
-              placeholder="••••••••"
-              icon={Lock}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+            <div className="form-group">
+              <Input
+                label="Confirmar Senha"
+                type="password"
+                placeholder="••••••••"
+                icon={Lock}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <Button type="submit" fullWidth disabled={loading || !password || validatePasswordStrength(password).errors.length > 0}>
@@ -289,11 +280,56 @@ const Register: React.FC = () => {
         .auth-form {
           display: flex;
           flex-direction: column;
+          gap: 1.5rem;
         }
 
         .form-row {
           display: flex;
           gap: 1.25rem;
+          align-items: flex-start;
+          width: 100%;
+        }
+
+        .form-group {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .password-strength-wrapper {
+          margin-top: 0.25rem;
+        }
+
+        .strength-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: capitalize;
+        }
+
+        .strength-bar-bg {
+          flex: 1;
+          height: 4px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 2px;
+          overflow: hidden;
+        }
+
+        .strength-bar-fill {
+          height: 100%;
+          transition: all 0.3s ease;
+        }
+
+        .password-errors {
+          margin-top: 10px;
+          font-size: 12px;
+          color: #ff6b6b;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
 
         .auth-footer {

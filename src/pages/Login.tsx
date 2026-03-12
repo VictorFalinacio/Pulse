@@ -158,10 +158,12 @@ const Login: React.FC = () => {
           font-weight: 800;
           margin-bottom: 0.5rem;
         }
-        .auth-header p {
-          color: var(--text-secondary);
+        .auth-form { 
+          display: flex; 
+          flex-direction: column; 
+          gap: 1.5rem;
         }
-        .auth-forgot { display: flex; justify-content: flex-end; margin-top: -0.5rem; }
+        .auth-forgot { display: flex; justify-content: flex-end; }
         .auth-footer { 
           text-align: center; 
           border-top: 1px solid var(--card-border); 

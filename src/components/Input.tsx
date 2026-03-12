@@ -24,7 +24,6 @@ const Input: React.FC<InputProps> = ({ label, icon: Icon, error, className = '',
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
-          margin-bottom: 1.25rem;
         }
         .input-label {
           font-size: 0.875rem;
@@ -38,9 +37,12 @@ const Input: React.FC<InputProps> = ({ label, icon: Icon, error, className = '',
         }
         .input-icon {
           position: absolute;
-          left: 1rem;
+          left: 1.25rem;
+          top: 50%;
+          transform: translateY(-50%);
           color: #555;
           transition: all 0.2s ease;
+          pointer-events: none;
         }
         .custom-input {
           width: 100%;
