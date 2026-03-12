@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import analysisRoutes from './routes/analysis.js';
+import sprintRoutes from './routes/sprint.js';
 
 dotenv.config();
 
@@ -88,9 +89,10 @@ app.use('/api/', async (req, res, next) => {
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/analysis', analysisRoutes);
+app.use('/api/sprint', sprintRoutes);
 
 app.get('/api/health', (req, res) => {
-    res.json({ 
+    res.json({
         message: 'Server is running',
         mongoConnected: mongoConnected,
         hasMongoUri: !!MONGO_URI,
