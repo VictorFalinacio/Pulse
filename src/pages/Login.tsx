@@ -113,11 +113,12 @@ const Login: React.FC = () => {
       <style>{`
         .auth-container {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           flex: 1;
           gap: 6rem;
           padding: 2rem;
+          padding-top: 10vh;
           min-height: 100vh;
           background: #000;
         }

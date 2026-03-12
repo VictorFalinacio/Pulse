@@ -21,28 +21,35 @@ const getFrontendUrl = () => {
 
 export const sendVerificationEmail = async (email, token) => {
     const frontendUrl = getFrontendUrl();
-    // Use direct link to verification page with token
     const verificationUrl = `${frontendUrl}/verify-email?token=${token}`;
     
     await transporter.sendMail({
         from: `"Agile Pulse" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: "Verifique sua conta - Agile Pulse",
+        subject: "Ative sua conta - Agile Pulse",
         html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Bem-vindo ao Agile Pulse!</h2>
-                <p style="color: #666; line-height: 1.6;">
-                    Para ativar sua conta, por favor clique no link abaixo. 
-                    Este link expira em <strong>24 horas</strong>.
-                </p>
-                <a href="${verificationUrl}" 
-                   style="display: inline-block; padding: 12px 24px; background-color: #8B5CF6; 
-                          color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">
-                    Verificar Email
-                </a>
-                <p style="color: #999; font-size: 12px; margin-top: 30px;">
-                    Se você não criou esta conta, ignore este email.
-                </p>
+            <div style="background-color: #000000; padding: 40px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; color: #ffffff;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid #222; border-radius: 16px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                    <h1 style="color: #ff3e3e; font-size: 28px; margin-bottom: 20px; font-weight: 800; letter-spacing: -1px;">Agile Pulse</h1>
+                    <div style="height: 1px; background: #222; margin: 20px 0;"></div>
+                    <h2 style="font-size: 22px; margin-bottom: 20px; font-weight: 700;">Bem-vindo ao Time!</h2>
+                    <p style="font-size: 16px; line-height: 1.6; color: #a0a0a0; margin-bottom: 30px;">
+                        Estamos felizes em ter você conosco. Para começar a potencializar a entrega da sua equipe com métricas claras, você precisa validar seu endereço de e-mail.
+                    </p>
+                    <a href="${verificationUrl}" 
+                       style="display: inline-block; padding: 16px 36px; background-color: #ff3e3e; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; transition: background-color 0.3s ease;">
+                        Validar Minha Conta
+                    </a>
+                    <p style="font-size: 14px; color: #555; margin-top: 30px;">
+                        Este link expirará em 24 horas.<br>
+                        Se o botão acima não funcionar, copie e cole este link no seu navegador:<br>
+                        <span style="color: #ff3e3e;">${verificationUrl}</span>
+                    </p>
+                    <div style="height: 1px; background: #222; margin: 30px 0;"></div>
+                    <p style="font-size: 12px; color: #444;">
+                        © 2026 Agile Pulse. Se você não criou esta conta, por favor ignore este e-mail.
+                    </p>
+                </div>
             </div>
         `
     });
@@ -50,28 +57,34 @@ export const sendVerificationEmail = async (email, token) => {
 
 export const sendPasswordResetEmail = async (email, token) => {
     const frontendUrl = getFrontendUrl();
-    // Use direct link with token - user can then submit password via form
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
     
     await transporter.sendMail({
         from: `"Agile Pulse" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: "Redefinir Senha - Agile Pulse",
+        subject: "Recuperação de Acesso - Agile Pulse",
         html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Recuperação de Senha</h2>
-                <p style="color: #666; line-height: 1.6;">
-                    Você solicitou uma alteração de senha. Clique no link abaixo para redefinir.
-                    Este link expira em <strong>1 hora</strong>.
-                </p>
-                <a href="${resetUrl}" 
-                   style="display: inline-block; padding: 12px 24px; background-color: #8B5CF6; 
-                          color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">
-                    Redefinir Senha
-                </a>
-                <p style="color: #999; font-size: 12px; margin-top: 30px;">
-                    Se você não solicitou isso, ignore este email.
-                </p>
+            <div style="background-color: #000000; padding: 40px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; color: #ffffff;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid #222; border-radius: 16px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                    <h1 style="color: #ff3e3e; font-size: 28px; margin-bottom: 20px; font-weight: 800; letter-spacing: -1px;">Agile Pulse</h1>
+                    <div style="height: 1px; background: #222; margin: 20px 0;"></div>
+                    <h2 style="font-size: 22px; margin-bottom: 20px; font-weight: 700;">Recuperação de Senha</h2>
+                    <p style="font-size: 16px; line-height: 1.6; color: #a0a0a0; margin-bottom: 30px;">
+                        Recebemos uma solicitação para redefinir a senha da sua conta no Agile Pulse. Clique no botão abaixo para prosseguir com a alteração.
+                    </p>
+                    <a href="${resetUrl}" 
+                       style="display: inline-block; padding: 16px 36px; background-color: #ff3e3e; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; transition: background-color 0.3s ease;">
+                        Redefinir Minha Senha
+                    </a>
+                    <p style="font-size: 14px; color: #555; margin-top: 30px;">
+                        Este link expirará em 1 hora por motivos de segurança.<br>
+                        Se você não solicitou esta redefinição, sua senha permanecerá a mesma e você pode ignorar este e-mail com segurança.
+                    </p>
+                    <div style="height: 1px; background: #222; margin: 30px 0;"></div>
+                    <p style="font-size: 12px; color: #444;">
+                        © 2026 Agile Pulse. Monitoramento e Insights para Equipes de Alta Performance.
+                    </p>
+                </div>
             </div>
         `
     });
