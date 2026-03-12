@@ -45,22 +45,15 @@ Certifique-se de manter um tom profissional, corporativo e focado em resultados.
 Texto para análise:
 ${text}`;
 
-    let lastError;
-    for (const model of modelsToTry) {
-        try {
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text();
-        } catch (error) {
-            console.warn(`Tentativa de modelo falhou devido a quota/limite. Tentando fallback...`);
-            lastError = error;
-            // Se for erro de quota (429), continua pro proximo modelo
-            continue;
-        }
+    try {
+        const model = genAI2.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
+    } catch (error) {
+        console.error('Gemini Analysis Error:', error);
+        throw new Error('Falha ao analisar o texto com IA.');
     }
-
-    console.error('Gemini Analysis Error:', lastError);
-    throw new Error('Falha ao analisar o texto com IA. Limite de todas as chaves atingido.');
 };
 export const analyzeSprintContext = async (allTexts) => {
     try {
