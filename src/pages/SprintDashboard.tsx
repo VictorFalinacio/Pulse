@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { LogOut, Activity, Plus, Upload, CheckCircle, FileText, Download, Printer, Loader2 } from 'lucide-react';
 import Button from '../components/Button';
@@ -18,18 +18,7 @@ const SprintDashboard: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const analysisRef = useRef<any>(null);
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('agile_pulse_current_user');
-        if (!storedUser) {
-            navigate('/login');
-            return;
-        }
-        const user = JSON.parse(storedUser);
-        setUserName(user.name || 'Usuário');
-        fetchSprint();
-    }, [id, navigate]);
-
-    const fetchSprint = async () => {
+    const fetchSprint = useCallback(async () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('agile_pulse_token');
@@ -41,7 +30,7 @@ const SprintDashboard: React.FC = () => {
             if (response.ok) {
                 const data = await response.json();
                 setSprint(data);
-                
+
                 // Set current analysis to the latest upload if exists
                 if (data.uploads && data.uploads.length > 0) {
                     const latest = [...data.uploads].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
@@ -53,7 +42,18 @@ const SprintDashboard: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('agile_pulse_current_user');
+        if (!storedUser) {
+            navigate('/login');
+            return;
+        }
+        const user = JSON.parse(storedUser);
+        setUserName(user.name || 'Usuário');
+        fetchSprint();
+    }, [navigate, fetchSprint]);
 
     const handleLogout = () => {
         localStorage.removeItem('agile_pulse_token');
@@ -64,10 +64,8 @@ const SprintDashboard: React.FC = () => {
     const handleUploadClick = (day: number) => {
         if (uploadingDay !== null) return;
         setUploadingDay(day);
-        
-        // Listen for window focus to detect when the file dialog closes
+
         const handleFocus = () => {
-            // Give time for onChange to trigger if a file was selected
             setTimeout(() => {
                 if (fileInputRef.current && fileInputRef.current.files?.length === 0) {
                     setUploadingDay(null);
@@ -75,16 +73,22 @@ const SprintDashboard: React.FC = () => {
                 window.removeEventListener('focus', handleFocus);
             }, 300);
         };
-        
+
         window.addEventListener('focus', handleFocus);
-        setTimeout(() => fileInputRef.current?.click(), 0);
+        
+        // Timeout prevents immediately triggering the focus event
+        setTimeout(() => {
+            if (fileInputRef.current) {
+                fileInputRef.current.click();
+            }
+        }, 100);
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0] && uploadingDay !== null) {
             const file = e.target.files[0];
             const day = uploadingDay;
-            
+
             const formData = new FormData();
             formData.append('file', file);
 
@@ -145,9 +149,9 @@ const SprintDashboard: React.FC = () => {
                         <Activity size={32} color="var(--primary)" />
                         <h2>Agile Pulse</h2>
                     </div>
-                    <Button 
-                        variant="ghost" 
-                        onClick={() => navigate('/sprints')} 
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/sprints')}
                         className="sprints-nav-btn"
                     >
                         Sprints
@@ -187,7 +191,7 @@ const SprintDashboard: React.FC = () => {
                                     return (
                                         <div key={day} className="upload-day-box">
                                             <span className="day-label">Dia {day} - Upload</span>
-                                            <div 
+                                            <div
                                                 className={`upload-square ${uploadData ? 'uploaded' : ''} ${uploadingDay === day ? 'uploading' : ''}`}
                                                 onClick={() => handleUploadClick(day)}
                                             >
@@ -196,7 +200,7 @@ const SprintDashboard: React.FC = () => {
                                                 ) : uploadData ? (
                                                     <div className="upload-success-content">
                                                         <div className="check-badge">
-                                                          <CheckCircle size={14} />
+                                                            <CheckCircle size={14} />
                                                         </div>
                                                         <Upload size={24} />
                                                         <span className="file-name">{uploadData.fileName}</span>
@@ -219,17 +223,17 @@ const SprintDashboard: React.FC = () => {
                         <div className="sidebar-header">
                             <h3>Resumo da Sprint</h3>
                             <div className="sidebar-actions">
-                                <Button 
-                                    variant="ghost" 
-                                    className="icon-btn" 
+                                <Button
+                                    variant="ghost"
+                                    className="icon-btn"
                                     title="Baixar PDF"
                                     onClick={() => analysisRef.current?.download()}
                                 >
                                     <Download size={18} />
                                 </Button>
-                                <Button 
-                                    variant="ghost" 
-                                    className="icon-btn" 
+                                <Button
+                                    variant="ghost"
+                                    className="icon-btn"
                                     title="Imprimir"
                                     onClick={() => analysisRef.current?.print()}
                                 >
@@ -237,25 +241,25 @@ const SprintDashboard: React.FC = () => {
                                 </Button>
                             </div>
                         </div>
-                        
+
                         <div className="summary-content">
                             {sprint.aggregatedSummary ? (
                                 <div className="analysis-wrapper">
-                                    <AnalysisDisplay 
+                                    <AnalysisDisplay
                                         analysis={{
                                             summary: sprint.aggregatedSummary,
                                             fileName: sprint.name,
                                             createdAt: sprint.updatedAt || sprint.createdAt
-                                        }} 
-                                        hideActions={true} 
+                                        }}
+                                        hideActions={true}
                                         ref={analysisRef}
                                     />
                                 </div>
                             ) : currentAnalysis ? (
                                 <div className="analysis-wrapper">
-                                    <AnalysisDisplay 
-                                        analysis={currentAnalysis} 
-                                        hideActions={true} 
+                                    <AnalysisDisplay
+                                        analysis={currentAnalysis}
+                                        hideActions={true}
                                         ref={analysisRef}
                                     />
                                 </div>
@@ -270,16 +274,16 @@ const SprintDashboard: React.FC = () => {
                 </div>
             </main>
 
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                style={{ display: 'none' }} 
+            <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
                 onChange={handleFileChange}
                 accept=".pdf,.docx,.txt"
             />
 
-            <CreateSprintModal 
-                isOpen={showCreateModal} 
+            <CreateSprintModal
+                isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 onCreated={(newSprint) => {
                     navigate(`/sprint/${newSprint._id}`);

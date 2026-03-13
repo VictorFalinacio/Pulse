@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Activity, Plus, ChevronRight, Trash2, Calendar } from 'lucide-react';
 import Button from '../components/Button';
@@ -15,18 +15,7 @@ const Sprints: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('agile_pulse_current_user');
-        if (!storedUser) {
-            navigate('/login');
-            return;
-        }
-        const user = JSON.parse(storedUser);
-        setUserName(user.name || 'Usuário');
-        fetchSprints();
-    }, [navigate]);
-
-    const fetchSprints = async () => {
+    const fetchSprints = useCallback(async () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('agile_pulse_token');
@@ -44,7 +33,18 @@ const Sprints: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('agile_pulse_current_user');
+        if (!storedUser) {
+            navigate('/login');
+            return;
+        }
+        const user = JSON.parse(storedUser);
+        setUserName(user.name || 'Usuário');
+        fetchSprints();
+    }, [navigate, fetchSprints]);
 
     const handleLogout = () => {
         localStorage.removeItem('agile_pulse_token');

@@ -29,7 +29,7 @@ const AnalysisDisplay = forwardRef(({ analysis, onDelete, hideActions = false }:
       <html>
         <head><meta charset="UTF-8"></head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; padding: 40px;">
-          ${analysis.summary.replace(/\n/g, '<br>')}
+          ${analysis.summary.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}
         </body>
       </html>
     `;
