@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Upload, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './Button';
 import { API_URL } from '../config';
@@ -7,40 +7,14 @@ interface FileUploadProps {
     onAnalysisComplete: (data: any) => void;
 }
 
+import { useCooldown } from '../context/CooldownContext';
+
 const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
+    const { cooldown, startCooldown } = useCooldown();
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
-    const [cooldown, setCooldown] = useState(0);
-
-    useEffect(() => {
-        const fetchCooldown = async () => {
-            const token = localStorage.getItem('agile_pulse_token');
-            if (token) {
-                try {
-                    const res = await fetch(`${API_URL}/api/analysis/cooldown`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.onCooldown) setCooldown(data.remaining);
-                    }
-                } catch (e) { }
-            }
-        };
-        fetchCooldown();
-    }, []);
-
-    useEffect(() => {
-        let timer: any;
-        if (cooldown > 0) {
-            timer = setInterval(() => {
-                setCooldown(prev => (prev <= 1 ? 0 : prev - 1));
-            }, 1000);
-        }
-        return () => clearInterval(timer);
-    }, [cooldown]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -78,6 +52,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
         const formData = new FormData();
         formData.append('file', file);
 
+        const controller = new AbortController();
+        const signal = controller.signal;
+
         try {
             const token = localStorage.getItem('agile_pulse_token');
             const response = await fetch(`${API_URL}/api/analysis/analisar`, {
@@ -86,6 +63,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
                     'Authorization': `Bearer ${token}`
                 },
                 body: formData,
+                signal
             });
 
             const data = await response.json();
@@ -95,14 +73,17 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
             }
 
             setSuccess(true);
-            setCooldown(60);
+            startCooldown(60);
             onAnalysisComplete(data);
             setFile(null);
         } catch (err: any) {
+            if (err.name === 'AbortError') return;
             setError(err.message);
         } finally {
             setLoading(false);
         }
+
+        return () => controller.abort();
     };
 
     return (

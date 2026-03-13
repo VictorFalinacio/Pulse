@@ -6,46 +6,24 @@ import CreateSprintModal from '../components/CreateSprintModal';
 import AnalysisDisplay from '../components/AnalysisDisplay';
 import { API_URL } from '../config';
 
+import { useCooldown } from '../context/CooldownContext';
+
 const SprintDashboard: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { cooldown, startCooldown, checkCooldown } = useCooldown();
     const [userName, setUserName] = useState('Usuário');
     const [sprint, setSprint] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [uploadingDay, setUploadingDay] = useState<number | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
-    const [cooldown, setCooldown] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const analysisRef = useRef<any>(null);
 
     useEffect(() => {
-        const fetchCooldown = async () => {
-            const token = localStorage.getItem('agile_pulse_token');
-            if (token) {
-                try {
-                    const res = await fetch(`${API_URL}/api/analysis/cooldown`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.onCooldown) setCooldown(data.remaining);
-                    }
-                } catch (e) {}
-            }
-        };
-        fetchCooldown();
-    }, []);
-
-    useEffect(() => {
-        let timer: any;
-        if (cooldown > 0) {
-            timer = setInterval(() => {
-                setCooldown(prev => (prev <= 1 ? 0 : prev - 1));
-            }, 1000);
-        }
-        return () => clearInterval(timer);
-    }, [cooldown]);
+        checkCooldown();
+    }, [checkCooldown]);
 
     const fetchSprint = useCallback(async () => {
         setLoading(true);
@@ -122,6 +100,9 @@ const SprintDashboard: React.FC = () => {
             const formData = new FormData();
             formData.append('file', file);
 
+            const controller = new AbortController();
+            const signal = controller.signal;
+
             try {
                 const token = localStorage.getItem('agile_pulse_token');
                 const response = await fetch(`${API_URL}/api/sprint/${id}/upload/${day}`, {
@@ -129,25 +110,29 @@ const SprintDashboard: React.FC = () => {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     },
-                    body: formData
+                    body: formData,
+                    signal
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     setSprint(data.sprint);
                     setCurrentAnalysis(data.analysis);
-                    setCooldown(60);
+                    startCooldown(60);
                 } else {
                     const errorData = await response.json().catch(() => ({}));
                     alert(errorData.msg || 'Erro ao fazer upload do arquivo.');
                 }
-            } catch (err) {
+            } catch (err: any) {
+                if (err.name === 'AbortError') return;
                 console.error('Erro no upload:', err);
                 alert('Erro de conexão ao fazer upload.');
             } finally {
                 setUploadingDay(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }
+
+            return () => controller.abort();
         } else {
             setUploadingDay(null);
         }
