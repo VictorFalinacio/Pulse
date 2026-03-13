@@ -18,7 +18,7 @@ const upload = multer({
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'text/plain'
         ];
-        
+
         if (allowedMimes.includes(file.mimetype)) {
             cb(null, true);
         } else {
@@ -31,7 +31,7 @@ const validateFileMagicBytes = (buffer, mimetype) => {
     const pdf = buffer.slice(0, 4).toString('hex').startsWith('25504446');
     const docx = buffer.slice(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
     const txt = true;
-    
+
     if (mimetype === 'application/pdf' && !pdf) {
         return false;
     }
@@ -52,12 +52,12 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
         if (lastAnalysis) {
             const timeSinceLastAnalysis = Date.now() - new Date(lastAnalysis.createdAt).getTime();
             if (timeSinceLastAnalysis < 60 * 1000) {
-                return res.status(429).json({ msg: 'Aguarde 1 minuto de cooldown entre os uploads (Limite do Gemini).' });
+                return res.status(429).json({ msg: 'Aguarde 1 minuto de cooldown entre os uploads' });
             }
         }
 
         const { originalname, mimetype, buffer } = req.file;
-        
+
         // Log only non-sensitive info in development
         if (process.env.NODE_ENV === 'development') {
             console.log(`Processing file: ${originalname.substring(0, 20)}...`);
@@ -111,7 +111,7 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
             ]);
         } catch (analysisError) {
             console.error('Analysis timeout or error:', analysisError);
-            const errorMsg = analysisError.message === 'Análise expirou' 
+            const errorMsg = analysisError.message === 'Análise expirou'
                 ? 'Análise levou muito tempo. Tente um arquivo menor.'
                 : 'Erro na Inteligência Artificial: ' + analysisError.message;
             return res.status(500).json({ msg: errorMsg });
@@ -138,10 +138,26 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
     }
 });
 
+// Route to get cooldown status
+router.get('/cooldown', authMiddleware, async (req, res) => {
+    try {
+        const lastAnalysis = await Analysis.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
+        if (lastAnalysis) {
+            const timeSinceLastAnalysis = Date.now() - new Date(lastAnalysis.createdAt).getTime();
+            if (timeSinceLastAnalysis < 60 * 1000) {
+                return res.json({ onCooldown: true, remaining: 60 - Math.floor(timeSinceLastAnalysis / 1000) });
+            }
+        }
+        res.json({ onCooldown: false, remaining: 0 });
+    } catch (error) {
+        res.status(500).json({ msg: 'Erro ao verificar cooldown.' });
+    }
+});
+
 // Route to get previous analyses for the user (only general ones)
 router.get('/historico', authMiddleware, async (req, res) => {
     try {
-        const history = await Analysis.find({ 
+        const history = await Analysis.find({
             userId: req.user.id,
             sprintId: { $exists: false }
         }).sort({ createdAt: -1 });

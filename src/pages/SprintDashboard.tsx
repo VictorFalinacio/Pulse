@@ -15,8 +15,37 @@ const SprintDashboard: React.FC = () => {
     const [uploadingDay, setUploadingDay] = useState<number | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
+    const [cooldown, setCooldown] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const analysisRef = useRef<any>(null);
+
+    useEffect(() => {
+        const fetchCooldown = async () => {
+            const token = localStorage.getItem('agile_pulse_token');
+            if (token) {
+                try {
+                    const res = await fetch(`${API_URL}/api/analysis/cooldown`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.onCooldown) setCooldown(data.remaining);
+                    }
+                } catch (e) {}
+            }
+        };
+        fetchCooldown();
+    }, []);
+
+    useEffect(() => {
+        let timer: any;
+        if (cooldown > 0) {
+            timer = setInterval(() => {
+                setCooldown(prev => (prev <= 1 ? 0 : prev - 1));
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [cooldown]);
 
     const fetchSprint = useCallback(async () => {
         setLoading(true);
@@ -62,6 +91,9 @@ const SprintDashboard: React.FC = () => {
     };
 
     const handleUploadClick = (day: number) => {
+        if (cooldown > 0) {
+            return alert(`Aguarde ${cooldown}s antes de fazer um novo upload (Limite da Inteligência Artificial).`);
+        }
         if (uploadingDay !== null) return;
         setUploadingDay(day);
 
@@ -106,6 +138,7 @@ const SprintDashboard: React.FC = () => {
                     const data = await response.json();
                     setSprint(data.sprint);
                     setCurrentAnalysis(data.analysis);
+                    setCooldown(60);
                 } else {
                     const errorData = await response.json().catch(() => ({}));
                     alert(errorData.msg || 'Erro ao fazer upload do arquivo.');
@@ -209,8 +242,8 @@ const SprintDashboard: React.FC = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="upload-placeholder">
-                                                        <Upload size={24} />
-                                                        <Plus size={12} className="plus-icon" />
+                                                        <Upload size={24} style={{ opacity: cooldown > 0 ? 0.3 : 1 }} />
+                                                        {cooldown <= 0 && <Plus size={12} className="plus-icon" />}
                                                     </div>
                                                 )}
                                             </div>
