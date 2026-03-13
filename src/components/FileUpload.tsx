@@ -26,7 +26,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
                         const data = await res.json();
                         if (data.onCooldown) setCooldown(data.remaining);
                     }
-                } catch (e) {}
+                } catch (e) { }
             }
         };
         fetchCooldown();
@@ -127,7 +127,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
                             {cooldown > 0 ? (
                                 <div className="cooldown-badge-large">
                                     <span className="cooldown-time-large">{cooldown}s</span>
-                                    <span className="cooldown-text-large">Aguarde o Cooldown da IA</span>
+                                    <span className="cooldown-text-large">Aguarde o Cooldown</span>
                                 </div>
                             ) : (
                                 <>
@@ -168,7 +168,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
                         Analisando com IA...
                     </>
                 ) : cooldown > 0 ? (
-                    `Aguarde ${cooldown}s (Limite da IA)`
+                    `Aguarde ${cooldown}s `
                 ) : (
                     'Gerar Relatório Ágil'
                 )}
