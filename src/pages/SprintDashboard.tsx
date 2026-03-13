@@ -107,10 +107,12 @@ const SprintDashboard: React.FC = () => {
                     setSprint(data.sprint);
                     setCurrentAnalysis(data.analysis);
                 } else {
-                    alert('Erro ao fazer upload do arquivo.');
+                    const errorData = await response.json().catch(() => ({}));
+                    alert(errorData.msg || 'Erro ao fazer upload do arquivo.');
                 }
             } catch (err) {
                 console.error('Erro no upload:', err);
+                alert('Erro de conexão ao fazer upload.');
             } finally {
                 setUploadingDay(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';

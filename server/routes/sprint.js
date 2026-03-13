@@ -19,7 +19,7 @@ const upload = multer({
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'text/plain'
         ];
-        
+
         if (allowedMimes.includes(file.mimetype)) {
             cb(null, true);
         } else {
@@ -31,7 +31,7 @@ const upload = multer({
 const validateFileMagicBytes = (buffer, mimetype) => {
     const pdf = buffer.slice(0, 4).toString('hex').startsWith('25504446');
     const docx = buffer.slice(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
-    
+
     if (mimetype === 'application/pdf' && !pdf) {
         return false;
     }
@@ -45,7 +45,7 @@ const validateFileMagicBytes = (buffer, mimetype) => {
 router.post('/', authMiddleware, async (req, res) => {
     try {
         const { name, durationDays } = req.body;
-        
+
         if (!name || !durationDays) {
             return res.status(400).json({ msg: 'Nome e duração são obrigatórios.' });
         }
@@ -104,7 +104,7 @@ router.put('/:id/expected', authMiddleware, async (req, res) => {
     try {
         const { expectedResult } = req.body;
         const sprint = await Sprint.findById(req.params.id);
-        
+
         if (!sprint) return res.status(404).json({ msg: 'Sprint não encontrada.' });
         if (sprint.userId.toString() !== req.user.id) return res.status(401).json({ msg: 'Não autorizado.' });
 
@@ -128,6 +128,15 @@ router.post('/:id/upload/:day', authMiddleware, upload.single('file'), async (re
 
         if (!req.file) {
             return res.status(400).json({ msg: 'Por favor, envie um arquivo.' });
+        }
+
+        // Rate Limit (Gemini API Cooldown)
+        const lastAnalysis = await Analysis.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
+        if (lastAnalysis) {
+            const timeSinceLastAnalysis = Date.now() - new Date(lastAnalysis.createdAt).getTime();
+            if (timeSinceLastAnalysis < 60 * 1000) {
+                return res.status(429).json({ msg: 'Aguarde 1 minuto entre os uploads' });
+            }
         }
 
         const { originalname, mimetype, buffer } = req.file;
@@ -187,7 +196,7 @@ router.post('/:id/upload/:day', authMiddleware, upload.single('file'), async (re
         }
 
         await sprint.save();
-        
+
         // Generate Aggregated Summary
         try {
             const populatedSprint = await Sprint.findById(id).populate('uploads.analysisId');

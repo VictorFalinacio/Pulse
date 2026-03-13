@@ -47,6 +47,15 @@ router.post('/analisar', authMiddleware, upload.single('file'), async (req, res)
             return res.status(400).json({ msg: 'Por favor, envie um arquivo.' });
         }
 
+        // Rate Limit (Gemini API Cooldown)
+        const lastAnalysis = await Analysis.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
+        if (lastAnalysis) {
+            const timeSinceLastAnalysis = Date.now() - new Date(lastAnalysis.createdAt).getTime();
+            if (timeSinceLastAnalysis < 60 * 1000) {
+                return res.status(429).json({ msg: 'Aguarde 1 minuto de cooldown entre os uploads (Limite do Gemini).' });
+            }
+        }
+
         const { originalname, mimetype, buffer } = req.file;
         
         // Log only non-sensitive info in development
