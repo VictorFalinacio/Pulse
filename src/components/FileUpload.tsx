@@ -8,9 +8,11 @@ interface FileUploadProps {
 }
 
 import { useCooldown } from '../context/CooldownContext';
+import { useUpload } from '../context/UploadContext';
 
 const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
     const { cooldown, startCooldown } = useCooldown();
+    const { uploads, uploadFile } = useUpload();
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -49,41 +51,20 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
         setLoading(true);
         setError(null);
 
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const controller = new AbortController();
-        const signal = controller.signal;
-
         try {
-            const token = localStorage.getItem('agile_pulse_token');
-            const response = await fetch(`${API_URL}/api/analysis/analisar`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData,
-                signal
+            await uploadFile(file, {
+                onComplete: (data) => {
+                    setSuccess(true);
+                    startCooldown(60);
+                    onAnalysisComplete(data);
+                    setFile(null);
+                }
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.msg || 'Erro ao processar arquivo');
-            }
-
-            setSuccess(true);
-            startCooldown(60);
-            onAnalysisComplete(data);
-            setFile(null);
         } catch (err: any) {
-            if (err.name === 'AbortError') return;
             setError(err.message);
         } finally {
             setLoading(false);
         }
-
-        return () => controller.abort();
     };
 
     return (

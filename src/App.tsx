@@ -8,14 +8,16 @@ import ResetPassword from './pages/ResetPassword';
 import RegisterSuccess from './pages/RegisterSuccess';
 import Sprints from './pages/Sprints';
 import SprintDashboard from './pages/SprintDashboard';
+import { UploadProvider } from './context/UploadContext';
 import { CooldownProvider } from './context/CooldownContext';
 import './index.css';
 
 function App() {
   return (
     <Router>
-      <CooldownProvider>
-        <Routes>
+      <UploadProvider>
+        <CooldownProvider>
+          <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -29,8 +31,9 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </CooldownProvider>
-    </Router>
-  );
+    </UploadProvider>
+  </Router>
+);
 }
 
 export default App;

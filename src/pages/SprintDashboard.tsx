@@ -7,11 +7,13 @@ import AnalysisDisplay from '../components/AnalysisDisplay';
 import { API_URL } from '../config';
 
 import { useCooldown } from '../context/CooldownContext';
+import { useUpload } from '../context/UploadContext';
 
 const SprintDashboard: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { cooldown, startCooldown, checkCooldown } = useCooldown();
+    const { uploads, uploadFile } = useUpload();
     const [userName, setUserName] = useState('Usuário');
     const [sprint, setSprint] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -97,42 +99,23 @@ const SprintDashboard: React.FC = () => {
             const file = e.target.files[0];
             const day = uploadingDay;
 
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const controller = new AbortController();
-            const signal = controller.signal;
-
             try {
-                const token = localStorage.getItem('agile_pulse_token');
-                const response = await fetch(`${API_URL}/api/sprint/${id}/upload/${day}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData,
-                    signal
+                await uploadFile(file, {
+                    day,
+                    sprintId: id,
+                    onComplete: (data) => {
+                        setSprint(data.sprint);
+                        setCurrentAnalysis(data.analysis);
+                        startCooldown(60);
+                    }
                 });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setSprint(data.sprint);
-                    setCurrentAnalysis(data.analysis);
-                    startCooldown(60);
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    alert(errorData.msg || 'Erro ao fazer upload do arquivo.');
-                }
             } catch (err: any) {
-                if (err.name === 'AbortError') return;
                 console.error('Erro no upload:', err);
                 alert('Erro de conexão ao fazer upload.');
             } finally {
                 setUploadingDay(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }
-
-            return () => controller.abort();
         } else {
             setUploadingDay(null);
         }
