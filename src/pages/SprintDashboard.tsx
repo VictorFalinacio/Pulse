@@ -91,9 +91,7 @@ const SprintDashboard: React.FC = () => {
     };
 
     const handleUploadClick = (day: number) => {
-        if (cooldown > 0) {
-            return alert(`Aguarde ${cooldown}s antes de fazer um novo upload (Limite da Inteligência Artificial).`);
-        }
+        if (cooldown > 0) return;
         if (uploadingDay !== null) return;
         setUploadingDay(day);
 
@@ -227,7 +225,7 @@ const SprintDashboard: React.FC = () => {
                                         <div key={day} className="upload-day-box">
                                             <span className="day-label">Dia {day} - Upload</span>
                                             <div
-                                                className={`upload-square ${uploadData ? 'uploaded' : ''} ${uploadingDay === day ? 'uploading' : ''}`}
+                                                className={`upload-square ${uploadData ? 'uploaded' : ''} ${uploadingDay === day ? 'uploading' : ''} ${cooldown > 0 && !uploadData ? 'disabled' : ''}`}
                                                 onClick={() => handleUploadClick(day)}
                                             >
                                                 {uploadingDay === day ? (
@@ -242,8 +240,17 @@ const SprintDashboard: React.FC = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="upload-placeholder">
-                                                        <Upload size={24} style={{ opacity: cooldown > 0 ? 0.3 : 1 }} />
-                                                        {cooldown <= 0 && <Plus size={12} className="plus-icon" />}
+                                                        {cooldown > 0 ? (
+                                                            <div className="cooldown-badge">
+                                                                <span className="cooldown-time">{cooldown}s</span>
+                                                                <span className="cooldown-text">Aguarde</span>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <Upload size={24} />
+                                                                <Plus size={12} className="plus-icon" />
+                                                            </>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -526,6 +533,46 @@ const SprintDashboard: React.FC = () => {
                 
                 .upload-square.uploaded:hover {
                     background: rgba(30, 126, 78, 0.2);
+                }
+
+                .upload-square.disabled {
+                    cursor: not-allowed;
+                    background: rgba(255, 255, 255, 0.02);
+                    border-color: #333;
+                }
+
+                .upload-square.disabled:hover {
+                    transform: none;
+                    border-color: #444;
+                }
+
+                .cooldown-badge {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.2rem;
+                    animation: pulse-border 2s infinite ease-in-out;
+                }
+
+                @keyframes pulse-border {
+                    0% { opacity: 0.6; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.6; }
+                }
+
+                .cooldown-time {
+                    font-size: 1.4rem;
+                    font-weight: 800;
+                    color: var(--primary);
+                    font-variant-numeric: tabular-nums;
+                }
+
+                .cooldown-text {
+                    font-size: 0.65rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    font-weight: 700;
+                    color: var(--text-secondary);
                 }
 
                 .upload-square.uploading {

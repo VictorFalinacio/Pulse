@@ -124,9 +124,18 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
                         </div>
                     ) : (
                         <div className="upload-prompt">
-                            <Upload size={40} className="upload-icon" />
-                            <span>{cooldown > 0 ? `Aguarde ${cooldown}s` : 'Clique ou arraste um arquivo'} para analisar</span>
-                            <small>PDF, DOCX ou TXT (Máx 5MB)</small>
+                            {cooldown > 0 ? (
+                                <div className="cooldown-badge-large">
+                                    <span className="cooldown-time-large">{cooldown}s</span>
+                                    <span className="cooldown-text-large">Aguarde o Cooldown da IA</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <Upload size={40} className="upload-icon" />
+                                    <span>Clique ou arraste um arquivo para analisar</span>
+                                    <small>PDF, DOCX ou TXT (Máx 5MB)</small>
+                                </>
+                            )}
                         </div>
                     )}
                 </label>
@@ -266,6 +275,40 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
         }
         .animate-spin {
           animation: spin 1s linear infinite;
+        }
+
+        .cooldown-badge-large {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+          animation: pulse-op 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-op {
+          0% { opacity: 0.7; transform: scale(0.98); }
+          50% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0.7; transform: scale(0.98); }
+        }
+
+        .cooldown-time-large {
+          font-size: 3.5rem;
+          font-weight: 900;
+          color: var(--primary);
+          text-shadow: 0 0 20px rgba(255, 62, 62, 0.4);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .cooldown-text-large {
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          font-weight: 700;
+          color: var(--text-secondary);
+        }
+
+        .drop-zone.disabled {
+          cursor: not-allowed;
         }
       `}</style>
         </div>
