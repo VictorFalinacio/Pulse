@@ -17,7 +17,6 @@ const ResetPassword: React.FC = () => {
     const [message, setMessage] = useState('');
     const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
-    // Handle password change and show validation errors
     const handlePasswordChange = (value: string) => {
         setPassword(value);
         const validation = validatePasswordStrength(value);
