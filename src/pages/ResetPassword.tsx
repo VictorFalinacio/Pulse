@@ -39,7 +39,7 @@ const ResetPassword: React.FC = () => {
             return;
         }
 
-        // Validate password strength
+
         const passwordValidation = validatePasswordStrength(password);
         if (!passwordValidation.isValid) {
             setStatus('error');
