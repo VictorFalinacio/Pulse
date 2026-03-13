@@ -13,7 +13,7 @@ const SprintDashboard: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { cooldown, startCooldown, checkCooldown } = useCooldown();
-    const { uploads, uploadFile } = useUpload();
+    const { uploadFile } = useUpload();
     const [userName, setUserName] = useState('Usuário');
     const [sprint, setSprint] = useState<any>(null);
     const [loading, setLoading] = useState(true);

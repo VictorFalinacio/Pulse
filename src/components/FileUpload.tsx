@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './Button';
-import { API_URL } from '../config';
 
 interface FileUploadProps {
     onAnalysisComplete: (data: any) => void;
@@ -12,7 +11,7 @@ import { useUpload } from '../context/UploadContext';
 
 const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
     const { cooldown, startCooldown } = useCooldown();
-    const { uploads, uploadFile } = useUpload();
+    const { uploadFile } = useUpload();
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
