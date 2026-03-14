@@ -111,7 +111,7 @@ const SprintDashboard: React.FC = () => {
                 });
             } catch (err: any) {
                 console.error('Erro no upload:', err);
-                alert('Erro de conexão ao fazer upload.');
+                alert(err.message || 'Erro de conexão ao fazer upload.');
             } finally {
                 setUploadingDay(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';

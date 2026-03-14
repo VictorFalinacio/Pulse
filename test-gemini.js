@@ -7,11 +7,9 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function findWorkingModel() {
     const modelsToTry = [
-        "models/gemini-1.5-flash",
-        "gemini-pro",
-        "models/gemini-2.0-flash-lite",
-        "models/gemini-2.5-flash",
-        "gemini-1.5-flash"
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-2.0-flash"
     ];
 
     console.log("--- TESTANDO MODELOS COM NOMES COMPLETOS ---");

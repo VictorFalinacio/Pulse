@@ -72,6 +72,7 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 ...prev,
                 [taskId]: { ...prev[taskId], status: 'error', error: err.message }
             }));
+            throw err;
         }
     }, []);
 

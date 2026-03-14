@@ -195,6 +195,7 @@ router.post('/:id/upload/:day', authMiddleware, upload.single('file'), async (re
             });
         }
 
+        sprint.markModified('uploads');
         await sprint.save();
 
         // Generate Aggregated Summary
