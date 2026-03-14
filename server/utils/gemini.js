@@ -58,7 +58,7 @@ ${text}`;
 export const analyzeSprintContext = async (allTexts) => {
     try {
 
-        const model = genAI2.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI2.getGenerativeModel({ model: "gemma-3-1b" });
 
         const prompt = ` Aja como um Product Owner sênior especialista em metodologias ágeis. Você recebeu uma lista de transcrições/notas de várias reuniões (Dailies) de uma mesma Sprint. Sua tarefa é consolidar todas essas informações em um único Resumo de Sprint atualizado.
 
