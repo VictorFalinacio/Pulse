@@ -180,6 +180,13 @@ router.post('/:id/upload/:day', authMiddleware, upload.single('file'), async (re
         // Update sprint uploads - if day already exists, update it
         const uploadIndex = sprint.uploads.findIndex(u => u.day == day);
         if (uploadIndex > -1) {
+            // Delete the old Analysis to avoid orphaned documents
+            const oldAnalysisId = sprint.uploads[uploadIndex].analysisId;
+            if (oldAnalysisId) {
+                await Analysis.findByIdAndDelete(oldAnalysisId).catch(err =>
+                    console.error('Error deleting old analysis:', err)
+                );
+            }
             sprint.uploads[uploadIndex] = {
                 day: parseInt(day),
                 analysisId: newAnalysis._id,
@@ -200,6 +207,7 @@ router.post('/:id/upload/:day', authMiddleware, upload.single('file'), async (re
 
         // Generate Aggregated Summary
         try {
+            // Re-fetch sprint with populated analyses after saving uploads
             const populatedSprint = await Sprint.findById(id).populate('uploads.analysisId');
             const allTexts = populatedSprint.uploads
                 .filter(u => u.analysisId && u.analysisId.originalText)
@@ -208,12 +216,12 @@ router.post('/:id/upload/:day', authMiddleware, upload.single('file'), async (re
 
             if (allTexts.length > 0) {
                 const globalSummary = await analyzeSprintContext(allTexts);
-                populatedSprint.aggregatedSummary = globalSummary;
-                await populatedSprint.save();
+                // Update aggregatedSummary directly by ID to avoid stale instance issues
+                await Sprint.findByIdAndUpdate(id, { aggregatedSummary: globalSummary });
             }
         } catch (aggError) {
-            console.error('Error generating aggregated summary:', aggError);
-            // Non-blocking error for the upload itself
+            console.error('Error generating aggregated summary (non-blocking):', aggError.message || aggError);
+            // Non-blocking: sprint upload still succeeds even if summary generation fails
         }
 
         const finalSprint = await Sprint.findById(id).populate('uploads.analysisId');

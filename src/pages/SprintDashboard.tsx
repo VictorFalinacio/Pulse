@@ -103,10 +103,12 @@ const SprintDashboard: React.FC = () => {
                 await uploadFile(file, {
                     day,
                     sprintId: id,
-                    onComplete: (data) => {
-                        setSprint(data.sprint);
+                    onComplete: async (data) => {
                         setCurrentAnalysis(data.analysis);
                         startCooldown(60);
+                        // Recarrega a sprint completa do servidor para garantir
+                        // que o aggregatedSummary atualizado seja exibido
+                        await fetchSprint();
                     }
                 });
             } catch (err: any) {
