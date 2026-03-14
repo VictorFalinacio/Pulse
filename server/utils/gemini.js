@@ -58,14 +58,14 @@ ${text}`;
 export const analyzeSprintContext = async (allTexts) => {
     try {
 
-        const model = genAI2.getGenerativeModel({ model: "gemma-3-1b" });
+        const model = genAI2.getGenerativeModel({ model: "gemini-2.5-flash-light" });
 
         const prompt = ` Aja como um Product Owner sênior especialista em metodologias ágeis. Você recebeu uma lista de transcrições/notas de várias reuniões (Dailies) de uma mesma Sprint. Sua tarefa é consolidar todas essas informações em um único Resumo de Sprint atualizado.
 
 Identifique padrões, progresso acumulado ao longo dos dias e impedimentos recorrentes. Gere somente o relatório, sem introduções ou despedidas. Gere um relatório rigorosamente estruturado: 
 
 # Resumo Consolidado da Sprint - [Contexto do resumo até o momento]
-**Estado Atual:** [Progresso Geral: ex: andamento dentro do esperado] | **Total de Reuniões Analisadas:** [Número de textos] SEMPRE INCLUIR A QUANTIDADE DE REUNIÕES REALIZADAS E A DATA CASO O ARQUIVO POSSUA
+**Estado Atual:** [Progresso Geral: ex: andamento dentro do esperado] | **Total de Reuniões Analisadas:** [Número de textos] SEMPRE INCLUIR A QUANTIDADE DE REUNIÕES REALIZADAS E, CASO O ARQUIVO POSSUA DATA, INCLUIR A DATA DO PRIMEIRO DIA E DO ÚLTIMO DIA ANALISADO.
 
 ---
 
