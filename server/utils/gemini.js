@@ -3,10 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const genAI1 = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const genAI2 = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_2 || process.env.GEMINI_API_KEY);
-
-const DEFAULT_MODEL = "models/gemini-1.5-flash";
 
 export const analyzeText = async (text) => {
     const prompt = `Aja como um Product Owner sênior especialista em metodologias ágeis. Analise o texto fornecido (que pode ser uma Daily, Review ou Planning) e gere um relatório rigorosamente estruturado seguindo este modelo:
@@ -48,29 +46,21 @@ Texto para análise:
 ${text}`;
 
     try {
-        const model = genAI2.getGenerativeModel({ model: DEFAULT_MODEL });
+        const model = genAI2.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         return response.text();
     } catch (error) {
-        console.error('Gemini Analysis Error (Attempt 1):', error.message);
-        
-        // Se falhou com a chave 2, tenta com a chave 1 como backup
-        try {
-            console.log('Falling back to Key 1...');
-            const model = genAI1.getGenerativeModel({ model: DEFAULT_MODEL });
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text();
-        } catch (fallbackError) {
-            console.error('Gemini Fallback Error:', fallbackError.message);
-            throw new Error(fallbackError.message || 'Falha ao analisar o texto com IA.');
-        }
+        console.error('Gemini Analysis Error:', error);
+        throw new Error('Falha ao analisar o texto com IA.');
     }
 };
-
 export const analyzeSprintContext = async (allTexts) => {
-    const prompt = ` Aja como um Product Owner sênior especialista em metodologias ágeis. Você recebeu uma lista de transcrições/notas de várias reuniões (Dailies) de uma mesma Sprint. Sua tarefa é consolidar todas essa informações em um único Resumo de Sprint atualizado.
+    try {
+
+        const model = genAI2.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const prompt = ` Aja como um Product Owner sênior especialista em metodologias ágeis. Você recebeu uma lista de transcrições/notas de várias reuniões (Dailies) de uma mesma Sprint. Sua tarefa é consolidar todas essas informações em um único Resumo de Sprint atualizado.
 
 Identifique padrões, progresso acumulado ao longo dos dias e impedimentos recorrentes. Gere somente o relatório, sem introduções ou despedidas. Gere um relatório rigorosamente estruturado: 
 
@@ -109,20 +99,11 @@ Identifique padrões, progresso acumulado ao longo dos dias e impedimentos recor
 Textos das reuniões da sprint (em ordem cronológica):
 ${allTexts.join('\n\n--- NOVA REUNIÃO ---\n\n')}`;
 
-    try {
-        const model = genAI2.getGenerativeModel({ model: DEFAULT_MODEL });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         return response.text();
     } catch (error) {
-        console.error('Gemini Sprint Analysis Fallback Attempt...');
-        try {
-            const model = genAI1.getGenerativeModel({ model: DEFAULT_MODEL });
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text();
-        } catch (fallbackError) {
-            throw new Error(fallbackError.message || 'Falha ao analisar o contexto da sprint com IA.');
-        }
+        console.error('Gemini Sprint Analysis Error:', error);
+        throw new Error('Falha ao analisar o contexto da sprint com IA.');
     }
 };
