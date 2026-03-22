@@ -303,15 +303,6 @@ const SprintDashboard: React.FC = () => {
             />
 
             <style>{`
-                .loading-screen, .error-screen {
-                    height: 100vh;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 1.5rem;
-                    color: var(--text-secondary);
-                }
 
                 .dashboard-container {
                     min-height: 100vh;
@@ -393,8 +384,6 @@ const SprintDashboard: React.FC = () => {
                     width: 100%;
                 }
 
-                .animate-spin { animation: spin 1s linear infinite; }
-                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
                 .sprint-dashboard-layout {
                     display: grid;

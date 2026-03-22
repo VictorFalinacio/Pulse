@@ -258,18 +258,10 @@ const VerifyEmail: React.FC = () => {
                     box-shadow: 0 10px 30px rgba(255, 62, 62, 0.3);
                 }
 
+
                 .retry-button {
                     height: 3.5rem;
                     border-radius: 10px;
-                }
-
-                .animate-spin {
-                    animation: spin 2s linear infinite;
-                }
-
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
                 }
 
                 @media (max-width: 600px) {

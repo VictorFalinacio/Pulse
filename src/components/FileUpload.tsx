@@ -225,17 +225,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
           border: 1px solid rgba(81, 207, 102, 0.2);
         }
 
+
         .upload-button {
           height: 3.5rem;
           font-size: 1.1rem;
-        }
-
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
         }
 
         .cooldown-badge-large {

@@ -129,4 +129,35 @@ button {
 .btn-ghost:hover {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.05);
-}
+}
+
+/* Global Loading and Error Screen */
+.loading-screen, .error-screen {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  color: var(--text-secondary);
+  background: var(--bg-main);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
