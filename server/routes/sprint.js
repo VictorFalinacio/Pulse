@@ -6,6 +6,7 @@ import Sprint from '../models/Sprint.js';
 import Analysis from '../models/Analysis.js';
 import { analyzeText, analyzeSprintContext } from '../utils/gemini.js';
 import authMiddleware from '../utils/authMiddleware.js';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
@@ -116,8 +117,15 @@ router.put('/:id/expected', authMiddleware, async (req, res) => {
     }
 });
 
+const uploadLimiter = rateLimit({
+    windowMs: 60 * 1000, 
+    max: 1, 
+    message: { msg: 'Aguarde 1 minuto entre os uploads' },
+    keyGenerator: (req) => req.user?.id || req.ip
+});
+
 // Upload to sprint day
-router.post('/:id/upload/:day', authMiddleware, upload.single('file'), async (req, res) => {
+router.post('/:id/upload/:day', authMiddleware, uploadLimiter, upload.single('file'), async (req, res) => {
     try {
         const { id, day } = req.params;
         const sprint = await Sprint.findById(id);
@@ -128,15 +136,6 @@ router.post('/:id/upload/:day', authMiddleware, upload.single('file'), async (re
 
         if (!req.file) {
             return res.status(400).json({ msg: 'Por favor, envie um arquivo.' });
-        }
-
-        // Rate Limit (Gemini API Cooldown)
-        const lastAnalysis = await Analysis.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
-        if (lastAnalysis) {
-            const timeSinceLastAnalysis = Date.now() - new Date(lastAnalysis.createdAt).getTime();
-            if (timeSinceLastAnalysis < 60 * 1000) {
-                return res.status(429).json({ msg: 'Aguarde 1 minuto entre os uploads' });
-            }
         }
 
         const { originalname, mimetype, buffer } = req.file;

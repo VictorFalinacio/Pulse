@@ -134,37 +134,7 @@ router.post('/verify-email', async (req, res) => {
     }
 });
 
-// Keep GET endpoint for backward compatibility with email links
-router.get('/verify/:token', async (req, res) => {
-    const token = req.params.token;
-    
-    try {
-        if (!token) {
-            return res.status(400).json({ msg: 'Token é obrigatório.' });
-        }
-
-        const user = await User.findOne({ 
-            verificationToken: token,
-            verificationTokenExpiresAt: { $gt: new Date() }
-        });
-
-        if (!user) {
-            return res.status(400).json({ msg: 'Token inválido ou expirado.' });
-        }
-
-        user.isVerified = true;
-        user.verificationToken = undefined;
-        user.verificationTokenExpiresAt = undefined;
-        await user.save();
-        
-        res.json({ msg: 'Email verificado com sucesso! Você já pode fazer login.' });
-    } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error(err);
-        }
-        res.status(500).json({ msg: 'Erro ao verificar email.' });
-    }
-});
+// Endpoint removed: router.get('/verify/:token') due to redundancy with POST /verify-email
 
 // Request Password Reset
 router.post('/forgot-password', async (req, res) => {
@@ -269,33 +239,6 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-// Keep old endpoint for backward compatibility
-router.post('/reset-password/:token', async (req, res) => {
-    try {
-        const passwordValidation = validatePasswordStrength(req.body.password);
-        if (!passwordValidation.isValid) {
-            return res.status(400).json({ msg: passwordValidation.errors[0] });
-        }
-
-        const user = await User.findOne({
-            resetPasswordToken: req.params.token,
-            resetPasswordExpire: { $gt: new Date() }
-        });
-
-        if (!user) return res.status(400).json({ msg: 'Token inválido ou expirado.' });
-
-        user.password = req.body.password;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
-
-        await user.save();
-        res.json({ msg: 'Sua senha foi redefinida com sucesso!' });
-    } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error(err);
-        }
-        res.status(500).json({ msg: 'Erro ao redefinir a senha' });
-    }
-});
+// Endpoint removed: router.post('/reset-password/:token') due to redundancy with modern POST
 
 export default router;
