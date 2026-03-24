@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Loader2, ArrowRight, MailCheck, ShieldAlert } from 'lucide-react';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 import Button from '../components/Button';
 
 const VerifyEmail: React.FC = () => {
@@ -25,7 +25,10 @@ const VerifyEmail: React.FC = () => {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
                 
-                const response = await fetch(`${API_URL}/api/auth/verify/${token}`, {
+                const response = await apiFetch('/api/auth/verify-email', {
+                    method: 'POST',
+                    requireAuth: false,
+                    body: { token },
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
@@ -83,7 +86,10 @@ const VerifyEmail: React.FC = () => {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000);
             
-            const response = await fetch(`${API_URL}/api/auth/verify/${token}`, {
+            const response = await apiFetch('/api/auth/verify-email', {
+                method: 'POST',
+                requireAuth: false,
+                body: { token },
                 signal: controller.signal
             });
             clearTimeout(timeoutId);

@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Download, FileText, Calendar, Printer, Trash2 } from 'lucide-react';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 
 interface AnalysisDisplayProps {
   analysis: any;
@@ -48,12 +48,8 @@ const AnalysisDisplay = forwardRef(({ analysis, onDelete, hideActions = false }:
   const confirmDelete = async () => {
     setShowDeleteConfirm(false);
     try {
-      const token = localStorage.getItem('agile_pulse_token');
-      const response = await fetch(`${API_URL}/api/analysis/${analysis._id}`, {
+      const response = await apiFetch(`/api/analysis/${analysis._id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
       });
 
       if (response.ok) {

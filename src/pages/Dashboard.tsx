@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Activity, History, FileText, ChevronRight, Trash2 } from 'lucide-react';
 import Button from '../components/Button';
 import ConfirmModal from '../components/ConfirmModal';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 
 import FileUpload from '../components/FileUpload';
 import AnalysisDisplay from '../components/AnalysisDisplay';
@@ -31,12 +31,7 @@ const Dashboard: React.FC = () => {
   const fetchHistory = async () => {
     setLoadingHistory(true);
     try {
-      const token = localStorage.getItem('agile_pulse_token');
-      const response = await fetch(`${API_URL}/api/analysis/historico`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await apiFetch('/api/analysis/historico');
       if (response.ok) {
         const data = await response.json();
         // Limit to last 5 results as requested
@@ -70,13 +65,7 @@ const Dashboard: React.FC = () => {
     setShowDeleteModal(false);
     if (!deleteTarget) return;
     try {
-      const token = localStorage.getItem('agile_pulse_token');
-      const response = await fetch(`${API_URL}/api/analysis/${deleteTarget}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await apiFetch(`/api/analysis/${deleteTarget}`, { method: 'DELETE' });
 
       if (response.ok) {
         fetchHistory();

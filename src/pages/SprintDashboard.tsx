@@ -4,7 +4,7 @@ import { LogOut, Activity, Plus, Upload, CheckCircle, FileText, Download, Printe
 import Button from '../components/Button';
 import CreateSprintModal from '../components/CreateSprintModal';
 import AnalysisDisplay from '../components/AnalysisDisplay';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 
 import { useCooldown } from '../context/CooldownContext';
 import { useUpload } from '../context/UploadContext';
@@ -30,12 +30,7 @@ const SprintDashboard: React.FC = () => {
     const fetchSprint = useCallback(async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('agile_pulse_token');
-            const response = await fetch(`${API_URL}/api/sprint/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await apiFetch(`/api/sprint/${id}`);
             if (response.ok) {
                 const data = await response.json();
                 setSprint(data);

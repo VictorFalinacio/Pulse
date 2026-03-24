@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 
 interface UploadTask {
     id: string;
@@ -41,16 +41,12 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         formData.append('file', file);
 
         try {
-            const token = localStorage.getItem('agile_pulse_token');
             const url = options?.sprintId 
-                ? `${API_URL}/api/sprint/${options.sprintId}/upload/${options.day}` 
-                : `${API_URL}/api/analysis/analisar`;
+                ? `/api/sprint/${options.sprintId}/upload/${options.day}` 
+                : `/api/analysis/analisar`;
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
                 body: formData
             });
 

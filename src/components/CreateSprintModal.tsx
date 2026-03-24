@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Calendar } from 'lucide-react';
 import Button from './Button';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 
 interface CreateSprintModalProps {
     isOpen: boolean;
@@ -23,14 +23,9 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({ isOpen, onClose, 
         setError('');
 
         try {
-            const token = localStorage.getItem('agile_pulse_token');
-            const response = await fetch(`${API_URL}/api/sprint`, {
+            const response = await apiFetch('/api/sprint', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ name, durationDays: days })
+                body: { name, durationDays: days }
             });
 
             const data = await response.json();

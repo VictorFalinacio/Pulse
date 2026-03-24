@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, ShieldCheck, Activity } from 'lucide-react';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 import { validatePasswordStrength, getPasswordStrengthLevel } from '../utils/passwordValidator';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -53,12 +53,10 @@ const Register: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
+      const response = await apiFetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
+        requireAuth: false,
+        body: { name, email, password },
       });
 
       const data = await response.json();

@@ -1,10 +1,8 @@
 import express from 'express';
 import multer from 'multer';
-import pdfParse from 'pdf-parse';
-import mammoth from 'mammoth';
-import Analysis from '../models/Analysis.js';
-import { analyzeText } from '../utils/gemini.js';
 import authMiddleware from '../utils/authMiddleware.js';
+import * as analysisController from '../controllers/analysisController.js';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
@@ -27,169 +25,16 @@ const upload = multer({
     }
 });
 
-const validateFileMagicBytes = (buffer, mimetype) => {
-    const pdf = buffer.slice(0, 4).toString('hex').startsWith('25504446');
-    const docx = buffer.slice(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
-    const txt = true;
-
-    if (mimetype === 'application/pdf' && !pdf) {
-        return false;
-    }
-    if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && !docx) {
-        return false;
-    }
-    return true;
-};
-
-router.post('/analisar', authMiddleware, upload.single('file'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ msg: 'Por favor, envie um arquivo.' });
-        }
-
-        // Rate Limit (Gemini API Cooldown)
-        const lastAnalysis = await Analysis.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
-        if (lastAnalysis) {
-            const timeSinceLastAnalysis = Date.now() - new Date(lastAnalysis.createdAt).getTime();
-            if (timeSinceLastAnalysis < 60 * 1000) {
-                return res.status(429).json({ msg: 'Aguarde 1 minuto de cooldown entre os uploads' });
-            }
-        }
-
-        const { originalname, mimetype, buffer } = req.file;
-
-        // Log only non-sensitive info in development
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`Processing file: ${originalname.substring(0, 20)}...`);
-        }
-
-        let extractedText = '';
-
-        // Validate magic bytes
-        if (!validateFileMagicBytes(buffer, mimetype)) {
-            return res.status(400).json({ msg: 'Arquivo inválido ou corrompido.' });
-        }
-
-        // Extraction Logic based on MIME type
-        try {
-            if (mimetype === 'application/pdf') {
-                const pdfData = await pdfParse(buffer);
-                extractedText = pdfData.text;
-            } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                const result = await mammoth.extractRawText({ buffer: buffer });
-                extractedText = result.value;
-            } else if (mimetype === 'text/plain') {
-                extractedText = buffer.toString('utf-8');
-            } else {
-                return res.status(400).json({ msg: 'Formato de arquivo não suportado. Use PDF, DOCX ou TXT.' });
-            }
-        } catch (extractError) {
-            if (process.env.NODE_ENV === 'development') {
-                console.error('Erro na extração de texto:', extractError);
-            }
-            return res.status(400).json({ msg: 'Falha ao ler o conteúdo do arquivo.' });
-        }
-
-        if (!extractedText || extractedText.trim().length === 0) {
-            return res.status(400).json({ msg: 'Não foi possível extrair texto do arquivo (arquivo vazio ou sem texto).' });
-        }
-
-        // Limit text length for API
-        if (extractedText.length > 50000) {
-            extractedText = extractedText.substring(0, 50000);
-        }
-
-        // AI Analysis with timeout
-        let aiSummary;
-        try {
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Análise expirou')), 30000) // 30 seconds timeout
-            );
-            aiSummary = await Promise.race([
-                analyzeText(extractedText),
-                timeoutPromise
-            ]);
-        } catch (analysisError) {
-            console.error('Analysis timeout or error:', analysisError);
-            const errorMsg = analysisError.message === 'Análise expirou'
-                ? 'Análise levou muito tempo. Tente um arquivo menor.'
-                : 'Erro na Inteligência Artificial: ' + analysisError.message;
-            return res.status(500).json({ msg: errorMsg });
-        }
-
-        // Save to MongoDB
-        const newAnalysis = new Analysis({
-            userId: req.user.id,
-            fileName: originalname,
-            fileType: mimetype,
-            originalText: extractedText,
-            summary: aiSummary
-        });
-
-        await newAnalysis.save();
-
-        res.json(newAnalysis);
-
-    } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error('Analysis Route Error:', error.message);
-        }
-        res.status(500).json({ msg: 'Erro ao processar o arquivo.' });
-    }
+const uploadLimiter = rateLimit({
+    windowMs: 60 * 1000, 
+    max: 1, 
+    message: { msg: 'Aguarde 1 minuto de cooldown entre os uploads' },
+    keyGenerator: (req) => req.user?.id || req.ip
 });
 
-// Route to get cooldown status
-router.get('/cooldown', authMiddleware, async (req, res) => {
-    try {
-        const lastAnalysis = await Analysis.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
-        if (lastAnalysis) {
-            const timeSinceLastAnalysis = Date.now() - new Date(lastAnalysis.createdAt).getTime();
-            if (timeSinceLastAnalysis < 60 * 1000) {
-                return res.json({ onCooldown: true, remaining: 60 - Math.floor(timeSinceLastAnalysis / 1000) });
-            }
-        }
-        res.json({ onCooldown: false, remaining: 0 });
-    } catch (error) {
-        res.status(500).json({ msg: 'Erro ao verificar cooldown.' });
-    }
-});
-
-// Route to get previous analyses for the user (only general ones)
-router.get('/historico', authMiddleware, async (req, res) => {
-    try {
-        const history = await Analysis.find({
-            userId: req.user.id,
-            sprintId: { $exists: false }
-        }).sort({ createdAt: -1 });
-        res.json(history);
-    } catch (error) {
-        res.status(500).json({ msg: 'Erro ao buscar histórico.' });
-    }
-});
-
-// Route to delete an analysis
-router.delete('/:id', authMiddleware, async (req, res) => {
-    try {
-        const analysis = await Analysis.findById(req.params.id);
-
-        if (!analysis) {
-            return res.status(404).json({ msg: 'Análise não encontrada.' });
-        }
-
-        // Check ownership
-        const userId = req.user.id || req.user._id;
-        if (analysis.userId.toString() !== userId) {
-            return res.status(401).json({ msg: 'Não autorizado para excluir esta análise.' });
-        }
-
-        await Analysis.findByIdAndDelete(req.params.id);
-        res.json({ msg: 'Análise excluída com sucesso.' });
-    } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error('Delete Analysis Error:', error);
-        }
-        res.status(500).json({ msg: 'Erro ao excluir a análise.' });
-    }
-});
+router.post('/analisar', authMiddleware, uploadLimiter, upload.single('file'), analysisController.analisar);
+router.get('/cooldown', authMiddleware, analysisController.getCooldownStatus);
+router.get('/historico', authMiddleware, analysisController.getHistory);
+router.delete('/:id', authMiddleware, analysisController.deleteAnalysis);
 
 export default router;

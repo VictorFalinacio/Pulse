@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Activity } from 'lucide-react';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 import Input from '../components/Input';
 import Button from '../components/Button';
 
@@ -25,10 +25,10 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      const response = await apiFetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        requireAuth: false,
+        body: { email, password },
       });
 
       const data = await response.json();

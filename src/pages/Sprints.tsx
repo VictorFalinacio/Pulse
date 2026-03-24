@@ -4,7 +4,7 @@ import { LogOut, Activity, Plus, ChevronRight, Trash2, Calendar } from 'lucide-r
 import Button from '../components/Button';
 import CreateSprintModal from '../components/CreateSprintModal';
 import ConfirmModal from '../components/ConfirmModal';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 
 const Sprints: React.FC = () => {
     const navigate = useNavigate();
@@ -18,12 +18,7 @@ const Sprints: React.FC = () => {
     const fetchSprints = useCallback(async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('agile_pulse_token');
-            const response = await fetch(`${API_URL}/api/sprint`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await apiFetch('/api/sprint');
             if (response.ok) {
                 const data = await response.json();
                 setSprints(data);
@@ -61,13 +56,7 @@ const Sprints: React.FC = () => {
     const confirmDeleteSprint = async () => {
         if (!deleteTarget) return;
         try {
-            const token = localStorage.getItem('agile_pulse_token');
-            const response = await fetch(`${API_URL}/api/sprint/${deleteTarget}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await apiFetch(`/api/sprint/${deleteTarget}`, { method: 'DELETE' });
             if (response.ok) {
                 fetchSprints();
             }

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { API_URL } from '../config';
+import { apiFetch } from '../utils/api';
 
 interface CooldownContextType {
     cooldown: number;
@@ -18,9 +18,7 @@ export const CooldownProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (!token) return;
 
         try {
-            const res = await fetch(`${API_URL}/api/analysis/cooldown`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await apiFetch('/api/analysis/cooldown');
             if (res.ok) {
                 const data = await res.json();
                 if (data.onCooldown) {
