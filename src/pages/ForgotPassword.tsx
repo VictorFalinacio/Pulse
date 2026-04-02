@@ -162,13 +162,11 @@ const ForgotPassword: React.FC = () => {
                     <h2>Recuperar Senha</h2>
                     <p>Enviaremos um link para o seu email cadastrado</p>
                 </div>
-
                 {status === 'error' && (
                     <div className="error-alert">
                         {message}
                     </div>
                 )}
-
                 <form onSubmit={handleForgot} className="auth-form">
                     <Input
                         label="Email Institucional"
