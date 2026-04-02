@@ -70,6 +70,295 @@ body {
   }
 }
 
+/* ─── Shared Page Layout ─────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.app-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.app-header .logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.app-header .logo:hover { transform: scale(1.02); }
+
+.app-header .logo h2 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+.app-header .nav-btn {
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.app-header .nav-btn:hover {
+  color: var(--primary);
+  background: rgba(255, 62, 62, 0.1);
+}
+
+.app-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.app-header .user-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.app-header .logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/* ─── Sprints Page ───────────────────────────────────────── */
+.sprints-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sprints-hero {
+  margin-top: 1rem;
+  margin-bottom: 2.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.sprints-hero h1 {
+  font-size: 3.2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.sprints-hero p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0;
+}
+
+.sprints-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2rem;
+}
+
+.sprints-loading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+/* ─── Sprint Card ────────────────────────────────────────── */
+.sprint-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 220px;
+}
+
+.sprint-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(255, 62, 62, 0.2);
+}
+
+.sprint-card:hover .sprint-card-footer { color: var(--primary); }
+.sprint-card:hover .sprint-card-footer svg { transform: translateX(4px); }
+.sprint-card:hover .sprint-delete-btn { opacity: 1; }
+
+.sprint-card-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1.5rem;
+}
+
+.sprint-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.sprint-icon {
+  background: rgba(255, 62, 62, 0.1);
+  color: var(--primary);
+  padding: 0.875rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sprint-info { flex: 1; min-width: 0; }
+
+.sprint-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sprint-info span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.sprint-delete-btn {
+  opacity: 0;
+  padding: 0.5rem !important;
+  border-radius: 8px;
+  flex-shrink: 0;
+  margin-top: -0.25rem;
+  margin-right: -0.25rem;
+  transition: all 0.2s ease;
+}
+
+.sprint-delete-btn:hover {
+  color: var(--danger) !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.sprint-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.sprint-progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sprint-progress-value { color: #fff; }
+
+.sprint-progress-bar {
+  height: 10px;
+  width: 100%;
+  background: #1a1a1a;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.sprint-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--primary);
+  box-shadow: 0 0 12px rgba(255, 62, 62, 0.5);
+  transition: width 0.7s ease-in-out;
+}
+
+.sprint-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.sprint-card-footer svg { transition: transform 0.2s ease; }
+
+.sprints-empty {
+  grid-column: 1 / -1;
+  padding: 5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  background: #050505;
+  border: 2px dashed var(--card-border);
+  border-radius: 24px;
+}
+
+.sprints-empty-icon {
+  background: #111;
+  padding: 1.5rem;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  opacity: 0.4;
+}
+
+.sprints-empty h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sprints-empty p {
+  color: var(--text-secondary);
+  max-width: 400px;
+  margin: 0;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .app-header { padding: 1rem; }
+  .app-header .user-name { display: none; }
+  .sprints-content { padding: 1.5rem; }
+  .sprints-hero { flex-direction: column; }
+  .sprints-hero h1 { font-size: 2.4rem; }
+  .sprints-grid { grid-template-columns: 1fr; }
+}
 .animate-fade-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
