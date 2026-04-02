@@ -74,7 +74,6 @@ const Sprints: React.FC = () => {
         return Math.min(Math.round((uploadCount / sprint.durationDays) * 100), 100);
     };
 
-
     return (
         <div className="min-h-screen flex flex-col items-center w-full">
             <header className="flex items-center justify-between px-8 py-4 bg-black sticky top-0 z-50 border-b border-[--card-border] w-full">
