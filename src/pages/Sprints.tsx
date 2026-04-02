@@ -99,79 +99,81 @@ const Sprints: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-1 p-8 w-full max-w-[1400px] mx-auto animate-fade-in">
-                <div className="mt-4 flex justify-between items-start mb-10">
+            <main className="flex-1 p-6 sm:p-10 w-full max-w-7xl mx-auto animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
                     <div className="text-left">
-                        <h1 className="text-[3.2rem] mb-2 text-white font-extrabold tracking-tight">Sprints</h1>
-                        <p className="text-[--text-secondary] text-lg max-w-[600px] m-0">Acompanhe o progresso das suas sprints e os resultados esperados.</p>
+                        <h1 className="text-4xl sm:text-5xl mb-3 text-white font-extrabold tracking-tight mt-0">Sprints</h1>
+                        <p className="text-[--text-secondary] text-base sm:text-lg max-w-2xl m-0">Acompanhe o progresso das suas sprints e os resultados esperados.</p>
                     </div>
                     <Button 
                         variant="primary" 
                         onClick={() => setShowCreateModal(true)} 
-                        className="flex gap-2 items-center h-fit px-7 py-4 font-bold text-base rounded-xl shadow-[0_8px_25px_rgba(255,62,62,0.25)] mt-4"
+                        className="flex gap-2 items-center justify-center w-full sm:w-auto h-fit px-6 py-3.5 font-bold text-[15px] rounded-xl shadow-[0_8px_20px_rgba(255,62,62,0.25)] transition-transform hover:-translate-y-0.5"
                     >
                         Criar Sprint <Plus size={18} />
                     </Button>
                 </div>
 
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-12 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {loading ? (
-                        <div className="flex items-center justify-center p-8">
-                            <p className="text-[--text-secondary]">Carregando sprints...</p>
+                        <div className="col-span-full flex items-center justify-center p-12">
+                            <p className="text-[--text-secondary] text-lg animate-pulse">Carregando sprints...</p>
                         </div>
                     ) : sprints.length > 0 ? (
                         sprints.map((sprint) => (
                             <div 
                                 key={sprint._id} 
-                                className="glass-panel p-8 cursor-pointer transition-all duration-300 border border-[--card-border] flex flex-col gap-8 group hover:border-[--primary] hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                                className="glass-panel p-6 cursor-pointer transition-all duration-300 border border-[--card-border] flex flex-col gap-6 group hover:border-[--primary] hover:-translate-y-1 hover:shadow-2xl hover:shadow-[--primary-glow]"
                                 onClick={() => navigate(`/sprint/${sprint._id}`)}
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-[rgba(255,62,62,0.1)] text-[--primary] p-3 rounded-xl">
-                                        <Calendar size={24} />
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-[rgba(255,62,62,0.1)] text-[--primary] p-3.5 rounded-xl shrink-0">
+                                        <Calendar size={22} strokeWidth={2.5} />
                                     </div>
-                                    <div className="flex-1">
-                                        <h3 className="m-0 text-xl font-bold text-white">{sprint.name}</h3>
-                                        <span className="text-sm text-[--text-secondary]">{sprint.durationDays} dias</span>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="m-0 text-xl font-bold text-white truncate">{sprint.name}</h3>
+                                        <span className="text-sm font-medium text-[--text-secondary] mt-1 block">{sprint.durationDays} dias</span>
                                     </div>
                                     <Button 
                                         variant="ghost" 
                                         onClick={(e) => handleDeleteSprint(e, sprint._id)}
-                                        className="opacity-0 p-2 group-hover:opacity-100 hover:!text-[--danger] hover:!bg-[rgba(239,68,68,0.1)] transition-all"
+                                        className="opacity-0 -mr-2 -mt-2 p-2 group-hover:opacity-100 hover:text-[--danger] hover:bg-[rgba(239,68,68,0.1)] transition-all rounded-lg shrink-0"
+                                        title="Excluir Sprint"
                                     >
                                         <Trash2 size={18} />
                                     </Button>
                                 </div>
 
-                                <div className="flex flex-col gap-6">
-                                    <div className="flex flex-col gap-2">
-                                        <div className="flex justify-between text-sm font-semibold text-[--text-secondary]">
-                                            <span>Completo</span>
-                                            <span>{calculateCompletion(sprint)}%</span>
-                                        </div>
-                                        <div className="h-2 bg-[#1a1a1a] rounded overflow-hidden">
-                                            <div 
-                                                className="h-full rounded transition-[width] duration-500 ease-out bg-[--primary] shadow-[0_0_10px_rgba(255,62,62,0.3)]" 
-                                                style={{ width: `${calculateCompletion(sprint)}%` }}
-                                            />
+                                <div className="flex flex-col gap-2 mt-auto">
+                                    <div className="flex justify-between items-center text-sm font-bold text-[--text-secondary]">
+                                        <span>Progresso</span>
+                                        <span className="text-white">{calculateCompletion(sprint)}%</span>
+                                    </div>
+                                    <div className="h-2.5 w-full bg-[#1a1a1a] rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full rounded-full transition-[width] duration-700 ease-in-out bg-[--primary] shadow-[0_0_12px_rgba(255,62,62,0.5)] relative" 
+                                            style={{ width: `${calculateCompletion(sprint)}%` }}
+                                        >
+                                            <div className="absolute inset-0 bg-white/20 w-full h-full animate-[pulse_2s_ease-in-out_infinite]" />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex justify-between items-center pt-4 border-t border-[--card-border] text-[--text-secondary] text-sm font-medium">
-                                    <span>Ver detalhes</span>
-                                    <ChevronRight size={18} />
+                                <div className="flex justify-between items-center pt-5 border-t border-[--card-border] text-[--text-secondary] text-[13px] font-semibold transition-colors group-hover:text-[--primary]">
+                                    <span className="tracking-wide uppercase">Acessar Painel</span>
+                                    <ChevronRight size={16} strokeWidth={3} className="transition-transform group-hover:translate-x-1" />
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <div className="col-[1/-1] py-20 px-8 text-center flex flex-col items-center gap-6 bg-[#050505] border-2 border-dashed border-[--card-border] rounded-[20px]">
-                            <Calendar size={48} className="text-[--text-secondary] opacity-30" />
-                            <h3 className="text-2xl text-white m-0">Nenhuma sprint criada</h3>
-                            <p className="text-[--text-secondary] max-w-[400px] m-0">Clique em "Criar Sprint" para começar a acompanhar seu progresso.</p>
-                            <Button onClick={() => setShowCreateModal(true)}>
-                                Criar Minha Primeira Sprint
-                            </Button>
+                        <div className="col-span-full py-24 px-8 text-center flex flex-col items-center gap-6 bg-[#050505] border-2 border-dashed border-[--card-border] rounded-[24px]">
+                            <div className="bg-[#111] p-6 rounded-full">
+                                <Calendar size={48} className="text-[--text-secondary] opacity-40" />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-bold text-white mb-2">Nenhuma sprint no momento</h3>
+                                <p className="text-[--text-secondary] max-w-[400px] m-0 text-base">Clique em "Criar Sprint" acima para inicializar seu primeiro projeto de análise.</p>
+                            </div>
                         </div>
                     )}
                 </div>
