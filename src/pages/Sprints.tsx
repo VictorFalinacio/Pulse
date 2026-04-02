@@ -122,43 +122,45 @@ const Sprints: React.FC = () => {
                         sprints.map((sprint) => (
                             <div 
                                 key={sprint._id} 
-                                className="glass-panel p-6 cursor-pointer transition-all duration-300 border border-[--card-border] flex flex-col gap-6 group hover:border-[--primary] hover:-translate-y-1 hover:shadow-2xl hover:shadow-[--primary-glow]"
+                                className="glass-panel cursor-pointer transition-all duration-300 border border-[--card-border] flex flex-col group hover:border-[--primary] hover:-translate-y-1 hover:shadow-2xl hover:shadow-[--primary-glow] overflow-hidden min-h-[220px]"
                                 onClick={() => navigate(`/sprint/${sprint._id}`)}
                             >
-                                <div className="flex items-start gap-4">
-                                    <div className="bg-[rgba(255,62,62,0.1)] text-[--primary] p-3.5 rounded-xl shrink-0">
-                                        <Calendar size={22} strokeWidth={2.5} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="m-0 text-xl font-bold text-white truncate">{sprint.name}</h3>
-                                        <span className="text-sm font-medium text-[--text-secondary] mt-1 block">{sprint.durationDays} dias</span>
-                                    </div>
-                                    <Button 
-                                        variant="ghost" 
-                                        onClick={(e) => handleDeleteSprint(e, sprint._id)}
-                                        className="opacity-0 -mr-2 -mt-2 p-2 group-hover:opacity-100 hover:text-[--danger] hover:bg-[rgba(239,68,68,0.1)] transition-all rounded-lg shrink-0"
-                                        title="Excluir Sprint"
-                                    >
-                                        <Trash2 size={18} />
-                                    </Button>
-                                </div>
-
-                                <div className="flex flex-col gap-2 mt-auto">
-                                    <div className="flex justify-between items-center text-sm font-bold text-[--text-secondary]">
-                                        <span>Progresso</span>
-                                        <span className="text-white">{calculateCompletion(sprint)}%</span>
-                                    </div>
-                                    <div className="h-2.5 w-full bg-[#1a1a1a] rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full rounded-full transition-[width] duration-700 ease-in-out bg-[--primary] shadow-[0_0_12px_rgba(255,62,62,0.5)] relative" 
-                                            style={{ width: `${calculateCompletion(sprint)}%` }}
+                                <div className="p-6 flex flex-col flex-1 gap-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="bg-[rgba(255,62,62,0.1)] text-[--primary] p-3.5 rounded-xl shrink-0 flex items-center justify-center">
+                                            <Calendar size={22} strokeWidth={2.5} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="m-0 text-xl font-bold text-white truncate">{sprint.name}</h3>
+                                            <span className="text-sm font-medium text-[--text-secondary] mt-1 block">{sprint.durationDays} dias</span>
+                                        </div>
+                                        <Button 
+                                            variant="ghost" 
+                                            onClick={(e) => handleDeleteSprint(e, sprint._id)}
+                                            className="opacity-0 -mr-2 -mt-2 p-2 group-hover:opacity-100 hover:text-[--danger] hover:bg-[rgba(239,68,68,0.1)] transition-all rounded-lg shrink-0"
+                                            title="Excluir Sprint"
                                         >
-                                            <div className="absolute inset-0 bg-white/20 w-full h-full animate-[pulse_2s_ease-in-out_infinite]" />
+                                            <Trash2 size={18} />
+                                        </Button>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2 mt-auto">
+                                        <div className="flex justify-between items-center text-sm font-bold text-[--text-secondary]">
+                                            <span>Progresso</span>
+                                            <span className="text-white">{calculateCompletion(sprint)}%</span>
+                                        </div>
+                                        <div className="h-2.5 w-full bg-[#1a1a1a] rounded-full overflow-hidden">
+                                            <div 
+                                                className="h-full rounded-full transition-[width] duration-700 ease-in-out bg-[--primary] shadow-[0_0_12px_rgba(255,62,62,0.5)] relative" 
+                                                style={{ width: `${calculateCompletion(sprint)}%` }}
+                                            >
+                                                <div className="absolute inset-0 bg-white/20 w-full h-full animate-[pulse_2s_ease-in-out_infinite]" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex justify-between items-center pt-5 border-t border-[--card-border] text-[--text-secondary] text-[13px] font-semibold transition-colors group-hover:text-[--primary]">
+                                <div className="flex justify-between items-center px-6 py-4 bg-[--bg-panel] border-t border-[--card-border] text-[--text-secondary] text-[13px] font-semibold transition-colors group-hover:text-[--primary]">
                                     <span className="tracking-wide uppercase">Acessar Painel</span>
                                     <ChevronRight size={16} strokeWidth={3} className="transition-transform group-hover:translate-x-1" />
                                 </div>

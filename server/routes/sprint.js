@@ -29,7 +29,7 @@ const uploadLimiter = rateLimit({
     windowMs: 60 * 1000, 
     max: 1, 
     message: { msg: 'Aguarde 1 minuto entre os uploads' },
-    keyGenerator: (req) => req.user?.id || req.ip
+    keyGenerator: (req) => req.user?.id || 'anonymous'
 });
 
 // Sprint Routes
