@@ -75,8 +75,8 @@ const Sprints: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center w-full">
-            <header className="flex items-center justify-between px-8 py-4 bg-black sticky top-0 z-50 border-b border-[--card-border] w-full">
+        <div className="min-h-screen flex flex-col w-full">
+            <header className="flex items-center justify-between px-4 sm:px-8 py-4 bg-black sticky top-0 z-[100] border-b border-[--card-border]">
                 <div className="flex items-center gap-8">
                     <div className="flex items-center gap-4 cursor-pointer transition-transform duration-200 hover:scale-[1.02]" onClick={() => navigate('/dashboard')}>
                         <Activity size={32} color="var(--primary)" />
@@ -91,23 +91,23 @@ const Sprints: React.FC = () => {
                     </Button>
                 </div>
                 <div className="flex items-center gap-6">
-                    <span className="font-medium text-[--text-primary]">{userName}</span>
+                    <span className="font-medium text-[--text-primary] hidden sm:block">{userName}</span>
                     <Button variant="ghost" onClick={handleLogout} className="text-[--text-secondary] flex gap-2 items-center">
                         Sair <LogOut size={18} />
                     </Button>
                 </div>
             </header>
 
-            <main className="flex-1 p-6 sm:p-10 w-full max-w-7xl mx-auto animate-fade-in">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
+            <main className="flex-1 p-6 md:p-8 w-full max-w-[1400px] mx-auto animate-fade-in">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-12 mt-4">
                     <div className="text-left">
-                        <h1 className="text-4xl sm:text-5xl mb-3 text-white font-extrabold tracking-tight mt-0">Sprints</h1>
-                        <p className="text-[--text-secondary] text-base sm:text-lg max-w-2xl m-0">Acompanhe o progresso das suas sprints e os resultados esperados.</p>
+                        <h1 className="text-[2.2rem] md:text-[3.2rem] mb-2 text-white font-extrabold leading-tight tracking-tight mt-0">Sprints</h1>
+                        <p className="text-[--text-secondary] text-lg max-w-[600px] m-0">Acompanhe o progresso das suas sprints e os resultados esperados.</p>
                     </div>
                     <Button 
                         variant="primary" 
                         onClick={() => setShowCreateModal(true)} 
-                        className="flex gap-2 items-center justify-center w-full sm:w-auto h-fit px-6 py-3.5 font-bold text-[15px] rounded-xl shadow-[0_8px_20px_rgba(255,62,62,0.25)] transition-transform hover:-translate-y-0.5"
+                        className="flex gap-2 items-center justify-center w-full md:w-auto h-fit px-6 py-3.5 font-bold text-[15px] rounded-xl shadow-[0_8px_20px_rgba(255,62,62,0.25)] transition-transform hover:-translate-y-0.5"
                     >
                         Criar Sprint <Plus size={18} />
                     </Button>
