@@ -98,16 +98,16 @@ const Sprints: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-1 p-6 md:p-8 w-full max-w-[1400px] mx-auto animate-fade-in">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-12 mt-4">
-                    <div className="text-left">
-                        <h1 className="text-[2.2rem] md:text-[3.2rem] mb-2 text-white font-extrabold leading-tight tracking-tight mt-0">Sprints</h1>
-                        <p className="text-[--text-secondary] text-lg max-w-[600px] m-0">Acompanhe o progresso das suas sprints e os resultados esperados.</p>
-                    </div>
+            <main className="flex-1 w-full max-w-[1400px] mx-auto px-8 py-8 animate-fade-in">
+                <div className="mt-4 mb-10">
+                    <h1 className="text-[3.2rem] mb-2 text-white font-extrabold leading-tight tracking-tight mt-0">Sprints</h1>
+                    <p className="text-[--text-secondary] text-[1.1rem] max-w-[600px] m-0">Acompanhe o progresso das suas sprints e os resultados esperados.</p>
+                </div>
+                <div className="flex justify-end mb-8">
                     <Button 
                         variant="primary" 
                         onClick={() => setShowCreateModal(true)} 
-                        className="flex gap-2 items-center justify-center w-full md:w-auto h-fit px-6 py-3.5 font-bold text-[15px] rounded-xl shadow-[0_8px_20px_rgba(255,62,62,0.25)] transition-transform hover:-translate-y-0.5"
+                        className="flex gap-2 items-center justify-center h-fit px-6 py-3.5 font-bold text-[15px] rounded-xl shadow-[0_8px_20px_rgba(255,62,62,0.25)] transition-transform hover:-translate-y-0.5"
                     >
                         Criar Sprint <Plus size={18} />
                     </Button>
