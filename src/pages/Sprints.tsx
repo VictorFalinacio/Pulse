@@ -113,7 +113,7 @@ const Sprints: React.FC = () => {
                     </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-8">
                     {loading ? (
                         <div className="col-span-full flex items-center justify-center p-12">
                             <p className="text-[--text-secondary] text-lg animate-pulse">Carregando sprints...</p>
