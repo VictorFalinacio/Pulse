@@ -66,7 +66,21 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
         extractedText = extractedText.substring(0, 50000);
     }
 
-    const aiSummary = await analyzeText(extractedText);
+    // Preparar textos para agregação de contexto ANTES de salvar (para rodar em paralelo)
+    const populatedSprintForContext = await Sprint.findById(sprintId).populate('uploads.analysisId');
+    const existingUploads = populatedSprintForContext.uploads
+        .filter(u => u.analysisId && u.analysisId.originalText && u.day !== parseInt(day))
+        .map(u => ({ day: u.day, text: u.analysisId.originalText }));
+    
+    existingUploads.push({ day: parseInt(day), text: extractedText });
+    existingUploads.sort((a, b) => a.day - b.day);
+    const allTexts = existingUploads.map(u => `Dia ${u.day}:\n${u.text}`);
+
+    // Disparar ambas as requisições API em paralelo usando Promise.all para evitar Vercel timeout
+    const [aiSummary, globalSummary] = await Promise.all([
+        analyzeText(extractedText),
+        allTexts.length > 0 ? analyzeSprintContext(allTexts) : Promise.resolve(null)
+    ]);
 
     const newAnalysis = new Analysis({
         userId,
@@ -100,24 +114,12 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
         });
     }
 
+    if (globalSummary) {
+        sprint.aggregatedSummary = globalSummary;
+    }
+
     sprint.markModified('uploads');
     await sprint.save();
-
-    // Aggregated Summary Logic
-    try {
-        const populatedSprint = await Sprint.findById(sprintId).populate('uploads.analysisId');
-        const allTexts = populatedSprint.uploads
-            .filter(u => u.analysisId && u.analysisId.originalText)
-            .sort((a, b) => a.day - b.day)
-            .map(u => `Dia ${u.day}:\n${u.analysisId.originalText}`);
-
-        if (allTexts.length > 0) {
-            const globalSummary = await analyzeSprintContext(allTexts);
-            await Sprint.findByIdAndUpdate(sprintId, { aggregatedSummary: globalSummary });
-        }
-    } catch (aggError) {
-        console.error('Error generating aggregated summary', aggError);
-    }
 
     return { 
         sprint: await Sprint.findById(sprintId).populate('uploads.analysisId'), 
