@@ -3,6 +3,7 @@ import multer from 'multer';
 import authMiddleware from '../utils/authMiddleware.js';
 import rateLimit from 'express-rate-limit';
 import * as sprintController from '../controllers/sprintController.js';
+import { ALLOWED_UPLOAD_MIME_TYPES } from '../utils/uploadValidation.js';
 
 const router = express.Router();
 
@@ -11,13 +12,7 @@ const upload = multer({
     storage: storage,
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        const allowedMimes = [
-            'application/pdf',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'text/plain'
-        ];
-
-        if (allowedMimes.includes(file.mimetype)) {
+        if (ALLOWED_UPLOAD_MIME_TYPES.includes(file.mimetype)) {
             cb(null, true);
         } else {
             cb(new Error('Formato de arquivo não suportado. Use PDF, DOCX ou TXT.'), false);

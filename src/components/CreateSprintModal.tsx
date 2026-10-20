@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { X, Calendar } from 'lucide-react';
 import Button from './Button';
 import { apiFetch } from '../utils/api';
+import type { SprintRecord } from '../types/api';
 
 interface CreateSprintModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreated: (sprint: any) => void;
+    onCreated: (sprint: SprintRecord) => void;
 }
 
 const CreateSprintModal: React.FC<CreateSprintModalProps> = ({ isOpen, onClose, onCreated }) => {
@@ -35,7 +36,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({ isOpen, onClose, 
             } else {
                 setError(data.msg || 'Erro ao criar sprint');
             }
-        } catch (err) {
+        } catch {
             setError('Erro de conexão');
         } finally {
             setLoading(false);

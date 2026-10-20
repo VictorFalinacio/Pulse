@@ -40,7 +40,7 @@ const Login: React.FC = () => {
       } else {
         setError(data.msg || data.message || 'Erro ao realizar login.');
       }
-    } catch (err) {
+    } catch {
       setError('Erro de conexão com o servidor.');
     } finally {
       setLoading(false);

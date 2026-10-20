@@ -3,14 +3,14 @@ import { Clock } from 'lucide-react';
 import Button from './Button';
 
 interface SessionTimeoutModalProps {
-    isOpen: boolean;
+    isOpen?: boolean;
     onStayLoggedIn: () => void;
     onLogout: () => void;
     countdownSeconds?: number;
 }
 
 const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
-    isOpen,
+    isOpen = true,
     onStayLoggedIn,
     onLogout,
     countdownSeconds = 60,
@@ -19,13 +19,7 @@ const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
-        if (!isOpen) {
-            setRemaining(countdownSeconds);
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            return;
-        }
-
-        setRemaining(countdownSeconds);
+        if (!isOpen) return;
 
         intervalRef.current = setInterval(() => {
             setRemaining((prev) => {

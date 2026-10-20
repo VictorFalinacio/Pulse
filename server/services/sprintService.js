@@ -3,6 +3,8 @@ import Analysis from '../models/Analysis.js';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { analyzeText, analyzeSprintContext } from '../utils/gemini.js';
+import { assertOwned } from '../utils/ownership.js';
+import { config } from '../config.js';
 
 export const countUserSprints = async (userId) => {
     return await Sprint.countDocuments({ userId });
@@ -19,15 +21,13 @@ export const getSprintsByUser = async (userId) => {
 
 export const getSprintById = async (sprintId, userId) => {
     const sprint = await Sprint.findById(sprintId).populate('uploads.analysisId');
-    if (!sprint) throw new Error('NOT_FOUND');
-    if (sprint.userId.toString() !== userId) throw new Error('UNAUTHORIZED');
+    assertOwned(sprint, userId);
     return sprint;
 };
 
 export const updateExpectedResult = async (sprintId, userId, expectedResult) => {
     const sprint = await Sprint.findById(sprintId);
-    if (!sprint) throw new Error('NOT_FOUND');
-    if (sprint.userId.toString() !== userId) throw new Error('UNAUTHORIZED');
+    assertOwned(sprint, userId);
     
     sprint.expectedResult = expectedResult;
     return await sprint.save();
@@ -35,17 +35,17 @@ export const updateExpectedResult = async (sprintId, userId, expectedResult) => 
 
 export const deleteSprint = async (sprintId, userId) => {
     const sprint = await Sprint.findById(sprintId);
-    if (!sprint) throw new Error('NOT_FOUND');
-    if (sprint.userId.toString() !== userId) throw new Error('UNAUTHORIZED');
+    assertOwned(sprint, userId);
     
-    await Sprint.findByIdAndDelete(sprintId);
+    await Analysis.deleteMany({ sprintId: sprint._id, userId });
+    await Sprint.findByIdAndDelete(sprint._id);
 };
 
 export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mimetype, originalname) => {
     const sprint = await Sprint.findById(sprintId);
-    if (!sprint) throw new Error('NOT_FOUND');
-    if (sprint.userId.toString() !== userId) throw new Error('UNAUTHORIZED');
-    if (day < 1 || day > sprint.durationDays) throw new Error('BAD_REQUEST_DAY');
+    assertOwned(sprint, userId);
+    const dayNumber = Number(day);
+    if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > sprint.durationDays) throw new Error('BAD_REQUEST_DAY');
 
     let extractedText = '';
     if (mimetype === 'application/pdf') {
@@ -69,12 +69,13 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
     // Preparar textos para agregação de contexto ANTES de salvar (para rodar em paralelo)
     const populatedSprintForContext = await Sprint.findById(sprintId).populate('uploads.analysisId');
     const existingUploads = populatedSprintForContext.uploads
-        .filter(u => u.analysisId && u.analysisId.originalText && u.day !== parseInt(day))
+        .filter(u => u.analysisId && u.analysisId.originalText && u.day !== dayNumber)
         .map(u => ({ day: u.day, text: u.analysisId.originalText }));
     
-    existingUploads.push({ day: parseInt(day), text: extractedText });
+    existingUploads.push({ day: dayNumber, text: extractedText });
     existingUploads.sort((a, b) => a.day - b.day);
-    const allTexts = existingUploads.map(u => `Dia ${u.day}:\n${u.text}`);
+    const contextText = existingUploads.map(upload => `Dia ${upload.day}:\n${upload.text}`).join('\n\n');
+    const allTexts = [contextText.slice(-config.geminiMaxSprintContextChars)];
 
     // Disparar ambas as requisições API em paralelo usando Promise.all para evitar Vercel timeout
     const [aiSummary, globalSummary] = await Promise.all([
@@ -93,21 +94,21 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
 
     await newAnalysis.save();
 
-    const uploadIndex = sprint.uploads.findIndex(u => u.day == day);
+    const uploadIndex = sprint.uploads.findIndex(u => u.day === dayNumber);
     if (uploadIndex > -1) {
         const oldAnalysisId = sprint.uploads[uploadIndex].analysisId;
         if (oldAnalysisId) {
             await Analysis.findByIdAndDelete(oldAnalysisId).catch(() => {});
         }
         sprint.uploads[uploadIndex] = {
-            day: parseInt(day),
+            day: dayNumber,
             analysisId: newAnalysis._id,
             fileName: originalname,
             uploadedAt: new Date()
         };
     } else {
         sprint.uploads.push({
-            day: parseInt(day),
+            day: dayNumber,
             analysisId: newAnalysis._id,
             fileName: originalname,
             uploadedAt: new Date()
