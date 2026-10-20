@@ -42,8 +42,9 @@ const VerifyEmail: React.FC = () => {
                     setStatus('error');
                     setMessage(data.msg || 'Erro na verificação do token.');
                 }
-            } catch (err: any) {
-                if (err.name === 'AbortError' || (err.message && err.message.includes('timeout'))) {
+            } catch (err: unknown) {
+                const error = err instanceof Error ? err : new Error('Falha na requisição');
+                if (error.name === 'AbortError' || error.message.includes('timeout')) {
                     if (attemptNum < 3) {
                         setStatus('retry');
                         setMessage(`Tentando novamente... (${attemptNum}/3)`);
@@ -103,7 +104,7 @@ const VerifyEmail: React.FC = () => {
                 setStatus('error');
                 setMessage(data.msg || 'Erro na verificação do token.');
             }
-        } catch (err: any) {
+        } catch {
             setStatus('error');
             setMessage('Erro ao conectar com o servidor.');
         }

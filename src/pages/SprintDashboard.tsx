@@ -6,8 +6,10 @@ import CreateSprintModal from '../components/CreateSprintModal';
 import AnalysisDisplay from '../components/AnalysisDisplay';
 import { apiFetch } from '../utils/api';
 
-import { useCooldown } from '../context/CooldownContext';
-import { useUpload } from '../context/UploadContext';
+import { useCooldown } from '../context/useCooldown';
+import { useUpload } from '../context/useUpload';
+import type { AnalysisDisplayHandle } from '../components/AnalysisDisplay';
+import type { AnalysisRecord, SprintRecord, UserSummary, SprintUpload } from '../types/api';
 
 const SprintDashboard: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -15,13 +17,13 @@ const SprintDashboard: React.FC = () => {
     const { cooldown, startCooldown, checkCooldown } = useCooldown();
     const { uploadFile } = useUpload();
     const [userName, setUserName] = useState('Usuário');
-    const [sprint, setSprint] = useState<any>(null);
+    const [sprint, setSprint] = useState<SprintRecord | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploadingDay, setUploadingDay] = useState<number | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
+    const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisRecord | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const analysisRef = useRef<any>(null);
+    const analysisRef = useRef<AnalysisDisplayHandle | null>(null);
 
     useEffect(() => {
         checkCooldown();
@@ -32,13 +34,13 @@ const SprintDashboard: React.FC = () => {
         try {
             const response = await apiFetch(`/api/sprint/${id}`);
             if (response.ok) {
-                const data = await response.json();
+                const data = await response.json() as SprintRecord;
                 setSprint(data);
 
                 // Set current analysis to the latest upload if exists
                 if (data.uploads && data.uploads.length > 0) {
                     const latest = [...data.uploads].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
-                    setCurrentAnalysis(latest.analysisId);
+                    if (typeof latest.analysisId !== 'string') setCurrentAnalysis(latest.analysisId);
                 }
             }
         } catch (err) {
@@ -54,7 +56,7 @@ const SprintDashboard: React.FC = () => {
             navigate('/login');
             return;
         }
-        const user = JSON.parse(storedUser);
+        const user = JSON.parse(storedUser) as UserSummary;
         setUserName(user.name || 'Usuário');
         fetchSprint();
     }, [navigate, fetchSprint]);
@@ -99,16 +101,16 @@ const SprintDashboard: React.FC = () => {
                     day,
                     sprintId: id,
                     onComplete: async (data) => {
-                        setCurrentAnalysis(data.analysis);
+                        if ('analysis' in data) setCurrentAnalysis(data.analysis);
                         startCooldown(60);
                         // Recarrega a sprint completa do servidor para garantir
                         // que o aggregatedSummary atualizado seja exibido
                         await fetchSprint();
                     }
                 });
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Erro no upload:', err);
-                alert(err.message || 'Erro de conexão ao fazer upload.');
+                alert(err instanceof Error ? err.message : 'Erro de conexão ao fazer upload.');
             } finally {
                 setUploadingDay(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';
@@ -185,7 +187,7 @@ const SprintDashboard: React.FC = () => {
                         <div className="upload-grid-container">
                             <div className="upload-grid">
                                 {days.map((day) => {
-                                    const uploadData = sprint.uploads?.find((u: any) => u.day === day);
+                                    const uploadData: SprintUpload | undefined = sprint.uploads?.find((u) => u.day === day);
                                     return (
                                         <div key={day} className="upload-day-box">
                                             <span className="day-label">Dia {day} - Upload</span>
@@ -254,8 +256,11 @@ const SprintDashboard: React.FC = () => {
                                 <div className="analysis-wrapper">
                                     <AnalysisDisplay
                                         analysis={{
+                                            _id: sprint._id,
+                                            userId: sprint.userId,
                                             summary: sprint.aggregatedSummary,
                                             fileName: sprint.name,
+                                            fileType: 'text/markdown',
                                             createdAt: sprint.updatedAt || sprint.createdAt
                                         }}
                                         hideActions={true}

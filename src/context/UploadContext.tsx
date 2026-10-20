@@ -1,28 +1,14 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { apiFetch } from '../utils/api';
-
-interface UploadTask {
-    id: string;
-    fileName: string;
-    progress: number;
-    status: 'uploading' | 'completed' | 'error';
-    day?: number;
-    sprintId?: string;
-    error?: string;
-}
-
-interface UploadContextType {
-    uploads: Record<string, UploadTask>;
-    uploadFile: (file: File, options?: { day?: number, sprintId?: string, onComplete?: (data: any) => void }) => Promise<void>;
-}
-
-const UploadContext = createContext<UploadContextType | undefined>(undefined);
+import type { UploadResult } from '../types/api';
+import { UploadContext } from './uploadContextValue';
+import type { UploadTask } from './uploadContextValue';
 
 export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [uploads, setUploads] = useState<Record<string, UploadTask>>({});
 
-    const uploadFile = useCallback(async (file: File, options?: { day?: number, sprintId?: string, onComplete?: (data: any) => void }) => {
+    const uploadFile = useCallback(async (file: File, options?: { day?: number, sprintId?: string, onComplete?: (data: UploadResult) => void }) => {
         const taskId = `${Date.now()}-${file.name}`;
         
         setUploads(prev => ({
@@ -63,10 +49,10 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             if (options?.onComplete) options.onComplete(data);
             
-        } catch (err: any) {
+        } catch (err: unknown) {
             setUploads(prev => ({
                 ...prev,
-                [taskId]: { ...prev[taskId], status: 'error', error: err.message }
+                [taskId]: { ...prev[taskId], status: 'error', error: err instanceof Error ? err.message : 'Falha desconhecida no upload.' }
             }));
             throw err;
         }
@@ -77,12 +63,4 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             {children}
         </UploadContext.Provider>
     );
-};
-
-export const useUpload = () => {
-    const context = useContext(UploadContext);
-    if (context === undefined) {
-        throw new Error('useUpload must be used within an UploadProvider');
-    }
-    return context;
 };

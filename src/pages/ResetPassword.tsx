@@ -65,7 +65,7 @@ const ResetPassword: React.FC = () => {
                 setStatus('error');
                 setMessage(data.msg || 'Erro ao redefinir a senha.');
             }
-        } catch (err) {
+        } catch {
             setStatus('error');
             setMessage('Erro de conexão com o servidor.');
         }

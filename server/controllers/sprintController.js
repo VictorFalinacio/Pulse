@@ -1,24 +1,15 @@
 import * as sprintService from '../services/sprintService.js';
-
-const validateFileMagicBytes = (buffer, mimetype) => {
-    const pdf = buffer.slice(0, 4).toString('hex').startsWith('25504446');
-    const docx = buffer.slice(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
-
-    if (mimetype === 'application/pdf' && !pdf) return false;
-    if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && !docx) return false;
-    
-    return true;
-};
+import { validateFileMagicBytes } from '../utils/uploadValidation.js';
 
 export const createSprint = async (req, res) => {
     try {
         const { name, durationDays } = req.body;
 
-        if (!name || !durationDays) {
+        if (typeof name !== 'string' || !name.trim() || !Number.isInteger(Number(durationDays)) || Number(durationDays) < 1) {
             return res.status(400).json({ msg: 'Nome e duração são obrigatórios.' });
         }
 
-        if (durationDays > 14) {
+        if (Number(durationDays) > 14) {
             return res.status(400).json({ msg: 'A duração máxima é de 14 dias.' });
         }
 
@@ -27,7 +18,7 @@ export const createSprint = async (req, res) => {
             return res.status(400).json({ msg: 'O limite máximo de 5 sprints foi atingido.' });
         }
 
-        const newSprint = await sprintService.createSprint(req.user.id, name, durationDays);
+        const newSprint = await sprintService.createSprint(req.user.id, name.trim(), Number(durationDays));
         res.json(newSprint);
     } catch (error) {
         res.status(500).json({ msg: 'Erro ao criar sprint.' });
@@ -57,6 +48,9 @@ export const getSprintById = async (req, res) => {
 export const updateExpectedResult = async (req, res) => {
     try {
         const { expectedResult } = req.body;
+        if (typeof expectedResult !== 'string' || expectedResult.length > 2000) {
+            return res.status(400).json({ msg: 'Resultado esperado deve ser um texto de até 2.000 caracteres.' });
+        }
         const sprint = await sprintService.updateExpectedResult(req.params.id, req.user.id, expectedResult);
         res.json(sprint);
     } catch (error) {
@@ -91,6 +85,9 @@ export const uploadSprintData = async (req, res) => {
         if (error.message === 'UNAUTHORIZED') return res.status(401).json({ msg: 'Não autorizado.' });
         if (error.message === 'BAD_REQUEST_DAY') return res.status(400).json({ msg: 'Dia inválido para esta sprint.' });
         if (error.message === 'BAD_REQUEST_EMPTY') return res.status(400).json({ msg: 'Não foi possível extrair texto do arquivo.' });
+        if (error.message === 'AI_INPUT_TOO_LARGE') return res.status(413).json({ msg: 'O texto acumulado ultrapassa o limite de contexto configurado.' });
+        if (error.message === 'AI_TIMEOUT') return res.status(504).json({ msg: 'A análise levou muito tempo. Tente novamente com um arquivo menor.' });
+        if (error.message.startsWith('Falha ao analisar')) return res.status(502).json({ msg: 'A análise por IA falhou. Tente novamente em instantes.' });
         
         res.status(500).json({ msg: 'Erro ao processar o upload da sprint.' });
     }

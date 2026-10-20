@@ -2,6 +2,8 @@ import Analysis from '../models/Analysis.js';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { analyzeText } from '../utils/gemini.js';
+import { assertOwned } from '../utils/ownership.js';
+import { config } from '../config.js';
 
 export const checkCooldown = async (userId) => {
     const lastAnalysis = await Analysis.findOne({ userId }).sort({ createdAt: -1 });
@@ -38,9 +40,10 @@ export const processAnalysis = async (userId, fileBuffer, mimetype, originalname
     }
 
     // AI Analysis with timeout
-    const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('TIMEOUT')), 30000)
-    );
+    let timeout;
+    const timeoutPromise = new Promise((_, reject) => {
+        timeout = setTimeout(() => reject(new Error('TIMEOUT')), config.geminiTimeoutMs);
+    });
     
     let aiSummary;
     try {
@@ -50,7 +53,10 @@ export const processAnalysis = async (userId, fileBuffer, mimetype, originalname
         ]);
     } catch (err) {
         if (err.message === 'TIMEOUT') throw new Error('AI_TIMEOUT');
+        if (err.message === 'AI_TIMEOUT' || err.message === 'AI_INPUT_TOO_LARGE') throw err;
         throw new Error(`AI_ERROR:${err.message}`);
+    } finally {
+        clearTimeout(timeout);
     }
 
     const newAnalysis = new Analysis({
@@ -70,10 +76,7 @@ export const getHistory = async (userId) => {
 
 export const deleteAnalysis = async (analysisId, userId) => {
     const analysis = await Analysis.findById(analysisId);
-    if (!analysis) throw new Error('NOT_FOUND');
-    // Ensure ownership string match
-    const uId = userId.toString();
-    if (analysis.userId.toString() !== uId) throw new Error('UNAUTHORIZED');
+    assertOwned(analysis, userId);
 
     await Analysis.findByIdAndDelete(analysisId);
 };

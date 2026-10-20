@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Upload, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './Button';
 
+import type { UploadResult } from '../types/api';
+
 interface FileUploadProps {
-    onAnalysisComplete: (data: any) => void;
+    onAnalysisComplete: (data: UploadResult) => void;
 }
 
-import { useCooldown } from '../context/CooldownContext';
-import { useUpload } from '../context/UploadContext';
+import { useCooldown } from '../context/useCooldown';
+import { useUpload } from '../context/useUpload';
 
 const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
     const { cooldown, startCooldown } = useCooldown();
@@ -59,8 +61,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
                     setFile(null);
                 }
             });
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro ao processar o arquivo.');
         } finally {
             setLoading(false);
         }

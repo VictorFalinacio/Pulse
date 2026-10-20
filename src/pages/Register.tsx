@@ -67,7 +67,7 @@ const Register: React.FC = () => {
       } else {
         setError(data.msg || data.message || 'Erro ao realizar cadastro.');
       }
-    } catch (err) {
+    } catch {
       setError('Erro de conexão com o servidor.');
     } finally {
       setLoading(false);

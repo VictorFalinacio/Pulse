@@ -32,7 +32,7 @@ const ForgotPassword: React.FC = () => {
                 setStatus('error');
                 setMessage(data.msg || 'Erro ao enviar email de recuperação.');
             }
-        } catch (err) {
+        } catch {
             setStatus('error');
             setMessage('Erro de conexão com o servidor.');
         }

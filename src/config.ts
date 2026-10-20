@@ -6,3 +6,6 @@ export const API_URL = (() => {
     const host = window.location.host;
     return `${protocol}//${host}`;
 })();
+
+export const SESSION_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
+export const SESSION_COUNTDOWN_SECONDS = 60;

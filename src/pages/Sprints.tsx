@@ -5,11 +5,12 @@ import Button from '../components/Button';
 import CreateSprintModal from '../components/CreateSprintModal';
 import ConfirmModal from '../components/ConfirmModal';
 import { apiFetch } from '../utils/api';
+import type { SprintRecord, UserSummary } from '../types/api';
 
 const Sprints: React.FC = () => {
     const navigate = useNavigate();
     const [userName, setUserName] = useState('Usuário');
-    const [sprints, setSprints] = useState<any[]>([]);
+    const [sprints, setSprints] = useState<SprintRecord[]>([]);
     const [loading, setLoading] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -36,7 +37,7 @@ const Sprints: React.FC = () => {
             navigate('/login');
             return;
         }
-        const user = JSON.parse(storedUser);
+        const user = JSON.parse(storedUser) as UserSummary;
         setUserName(user.name || 'Usuário');
         fetchSprints();
     }, [navigate, fetchSprints]);
@@ -66,7 +67,7 @@ const Sprints: React.FC = () => {
         }
     };
 
-    const calculateCompletion = (sprint: any) => {
+    const calculateCompletion = (sprint: SprintRecord) => {
         if (!sprint.durationDays) return 0;
         const uploadCount = sprint.uploads?.length || 0;
         return Math.min(Math.round((uploadCount / sprint.durationDays) * 100), 100);

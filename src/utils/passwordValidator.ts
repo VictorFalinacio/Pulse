@@ -18,7 +18,7 @@ export const validatePasswordStrength = (password: string) => {
         errors.push('A senha deve conter pelo menos 1 número.');
     }
 
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    if (!/[^\w\s]/.test(password)) {
         errors.push('A senha deve conter pelo menos 1 caractere especial (!@#$%^&*).');
     }
 
@@ -36,7 +36,7 @@ export const getPasswordStrengthLevel = (password: string) => {
     if (/[A-Z]/.test(password)) score++;
     if (/[a-z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
-    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
+    if (/[^\w\s]/.test(password)) score++;
 
     if (score <= 2) return { level: 'fraco', color: '#ef4444' };
     if (score <= 4) return { level: 'mediano', color: '#f59e0b' };

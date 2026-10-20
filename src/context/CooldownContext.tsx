@@ -1,14 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { apiFetch } from '../utils/api';
-
-interface CooldownContextType {
-    cooldown: number;
-    startCooldown: (seconds?: number) => void;
-    checkCooldown: () => Promise<void>;
-}
-
-const CooldownContext = createContext<CooldownContextType | undefined>(undefined);
+import { CooldownContext } from './cooldownContextValue';
 
 export const CooldownProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [cooldown, setCooldown] = useState(0);
@@ -35,11 +28,12 @@ export const CooldownProvider: React.FC<{ children: ReactNode }> = ({ children }
     }, []);
 
     useEffect(() => {
-        checkCooldown();
+        const timer = setTimeout(() => { void checkCooldown(); }, 0);
+        return () => clearTimeout(timer);
     }, [checkCooldown]);
 
     useEffect(() => {
-        let timer: any;
+        let timer: ReturnType<typeof setInterval> | undefined;
         if (cooldown > 0) {
             timer = setInterval(() => {
                 setCooldown(prev => (prev <= 1 ? 0 : prev - 1));
@@ -53,12 +47,4 @@ export const CooldownProvider: React.FC<{ children: ReactNode }> = ({ children }
             {children}
         </CooldownContext.Provider>
     );
-};
-
-export const useCooldown = () => {
-    const context = useContext(CooldownContext);
-    if (context === undefined) {
-        throw new Error('useCooldown must be used within a CooldownProvider');
-    }
-    return context;
 };

@@ -1,14 +1,5 @@
 import * as analysisService from '../services/analysisService.js';
-
-const validateFileMagicBytes = (buffer, mimetype) => {
-    const pdf = buffer.slice(0, 4).toString('hex').startsWith('25504446');
-    const docx = buffer.slice(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
-
-    if (mimetype === 'application/pdf' && !pdf) return false;
-    if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && !docx) return false;
-    
-    return true;
-};
+import { validateFileMagicBytes } from '../utils/uploadValidation.js';
 
 export const analisar = async (req, res) => {
     try {
@@ -32,8 +23,9 @@ export const analisar = async (req, res) => {
     } catch (error) {
         if (error.message === 'UNSUPPORTED_FORMAT') return res.status(400).json({ msg: 'Formato de arquivo não suportado. Use PDF, DOCX ou TXT.' });
         if (error.message === 'EMPTY_FILE') return res.status(400).json({ msg: 'Não foi possível extrair texto do arquivo (arquivo vazio ou sem texto).' });
-        if (error.message === 'AI_TIMEOUT') return res.status(500).json({ msg: 'Análise levou muito tempo. Tente um arquivo menor.' });
-        if (error.message.startsWith('AI_ERROR:')) return res.status(500).json({ msg: 'Erro na Inteligência Artificial: ' + error.message.split(':')[1] });
+        if (error.message === 'AI_TIMEOUT') return res.status(504).json({ msg: 'Análise levou muito tempo. Tente um arquivo menor.' });
+        if (error.message.startsWith('AI_ERROR:')) return res.status(502).json({ msg: 'A análise por IA falhou. Tente novamente em instantes.' });
+        if (error.message === 'AI_INPUT_TOO_LARGE') return res.status(413).json({ msg: 'O texto extraído ultrapassa o limite configurado para análise.' });
 
         if (process.env.NODE_ENV === 'development') {
             console.error('Analysis Route Error:', error.message);

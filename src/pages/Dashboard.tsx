@@ -7,12 +7,13 @@ import { apiFetch } from '../utils/api';
 
 import FileUpload from '../components/FileUpload';
 import AnalysisDisplay from '../components/AnalysisDisplay';
+import type { AnalysisRecord, UserSummary } from '../types/api';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('Usuário');
-  const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisRecord | null>(null);
+  const [history, setHistory] = useState<AnalysisRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -23,7 +24,7 @@ const Dashboard: React.FC = () => {
       navigate('/login');
       return;
     }
-    const user = JSON.parse(storedUser);
+    const user = JSON.parse(storedUser) as UserSummary;
     setUserName(user.name || 'Usuário');
     fetchHistory();
   }, [navigate]);
@@ -50,8 +51,8 @@ const Dashboard: React.FC = () => {
     navigate('/login');
   };
 
-  const handleAnalysisComplete = (data: any) => {
-    setCurrentAnalysis(data);
+  const handleAnalysisComplete = (data: AnalysisRecord | { analysis: AnalysisRecord }) => {
+    setCurrentAnalysis('analysis' in data ? data.analysis : data);
     fetchHistory(); // Refresh the history list after a new analysis
   };
 

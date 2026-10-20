@@ -4,24 +4,23 @@ import { Download, FileText, Calendar, Printer, Trash2 } from 'lucide-react';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import { apiFetch } from '../utils/api';
+import type { AnalysisRecord } from '../types/api';
+
+export interface AnalysisDisplayHandle {
+  download: () => void;
+  print: () => void;
+}
 
 interface AnalysisDisplayProps {
-  analysis: any;
+  analysis: AnalysisRecord;
   onDelete?: () => void;
   hideActions?: boolean;
 }
 
-const AnalysisDisplay = forwardRef(({ analysis, onDelete, hideActions = false }: AnalysisDisplayProps, ref) => {
+const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(({ analysis, onDelete, hideActions = false }, ref) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-
-  useImperativeHandle(ref, () => ({
-    download: handleDownload,
-    print: handlePrint
-  }));
-
-  if (!analysis) return null;
 
   const handleDownload = () => {
     const element = document.createElement("a");
@@ -44,6 +43,8 @@ const AnalysisDisplay = forwardRef(({ analysis, onDelete, hideActions = false }:
   const handlePrint = () => {
     window.print();
   };
+
+  useImperativeHandle(ref, () => ({ download: handleDownload, print: handlePrint }));
 
   const confirmDelete = async () => {
     setShowDeleteConfirm(false);
@@ -88,7 +89,7 @@ const AnalysisDisplay = forwardRef(({ analysis, onDelete, hideActions = false }:
         </div>
         <div className="analysis-meta">
           <span className="analysis-file"><FileText size={14} /> {analysis.fileName}</span>
-          <span className="analysis-date"><Calendar size={14} /> {new Date(analysis.createdAt || Date.now()).toLocaleDateString()}</span>
+          <span className="analysis-date"><Calendar size={14} /> {new Date(analysis.createdAt).toLocaleDateString()}</span>
         </div>
       </div>
 
