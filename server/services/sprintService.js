@@ -65,11 +65,16 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
     const initialContext = contextUploads.map(item => `Dia ${item.day}:\n${item.text}`).join('\n\n');
     const boundedInitialContext = initialContext.slice(-config.geminiMaxSprintContextChars);
 
-    // Keep the two Gemini calls parallel in the common case to fit serverless limits.
-    let [aiSummary, globalSummary] = await Promise.all([
+    // The individual report is required for the upload. Consolidation is a
+    // secondary operation and must not discard a valid meeting when Gemini
+    // rejects the larger context or times out.
+    const [analysisResult, contextResult] = await Promise.allSettled([
         analyzeText(extractedText),
         analyzeSprintContext([boundedInitialContext])
     ]);
+    if (analysisResult.status === 'rejected') throw analysisResult.reason;
+    let aiSummary = analysisResult.value;
+    let globalSummary = contextResult.status === 'fulfilled' ? contextResult.value : null;
 
     const newAnalysis = new Analysis({
         userId,
@@ -122,11 +127,13 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
             const latestContext = latestUploads.map(item => `Dia ${item.day}:\n${item.text}`).join('\n\n');
             globalSummary = await analyzeSprintContext([latestContext.slice(-config.geminiMaxSprintContextChars)]);
         }
-        const result = await Sprint.updateOne(
-            { _id: sprintId, userId, contextRevision: updated.contextRevision },
-            { $set: { aggregatedSummary: globalSummary } }
-        );
-        summaryUpdated = result.matchedCount === 1;
+        if (globalSummary) {
+            const result = await Sprint.updateOne(
+                { _id: sprintId, userId, contextRevision: updated.contextRevision },
+                { $set: { aggregatedSummary: globalSummary } }
+            );
+            summaryUpdated = result.matchedCount === 1;
+        }
     } catch (error) {
         log('warn', 'sprint_summary_refresh_failed', { sprintId: String(sprintId), message: error.message });
     }

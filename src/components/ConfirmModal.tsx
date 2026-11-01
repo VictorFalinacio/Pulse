@@ -11,6 +11,7 @@ interface ConfirmModalProps {
     variant?: 'danger' | 'info';
     onConfirm: () => void;
     onCancel: () => void;
+    hideCancel?: boolean;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -22,6 +23,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     variant = 'danger',
     onConfirm,
     onCancel,
+    hideCancel = false,
 }) => {
     if (!isOpen) return null;
 
@@ -40,9 +42,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 <p className="modal-message">{message}</p>
 
                 <div className="modal-actions">
-                    <Button variant="ghost" onClick={onCancel}>
+                    {!hideCancel && <Button variant="ghost" onClick={onCancel}>
                         {cancelText}
-                    </Button>
+                    </Button>}
                     <button className={`modal-confirm-btn ${variant}`} onClick={onConfirm}>
                         {confirmText}
                     </button>
