@@ -89,7 +89,7 @@ export const uploadSprintData = async (req, res) => {
         if (error.message === 'SPRINT_NOT_FOUND') return res.status(404).json({ msg: 'Sprint não encontrada.' });
         if (error.message === 'AI_INPUT_TOO_LARGE') return res.status(413).json({ msg: 'O texto acumulado ultrapassa o limite de contexto configurado.' });
         if (error.message === 'AI_TIMEOUT') return res.status(504).json({ msg: 'A análise levou muito tempo. Tente novamente com um arquivo menor.' });
-        if (error.message.startsWith('Falha ao analisar') || error.message === 'AI_INVALID_RESPONSE') {
+        if (typeof error?.message === 'string' && (error.message.startsWith('Falha ao analisar') || error.message === 'AI_INVALID_RESPONSE')) {
             return res.status(502).json({ msg: 'A análise por IA falhou. Tente novamente em instantes.' });
         }
         
