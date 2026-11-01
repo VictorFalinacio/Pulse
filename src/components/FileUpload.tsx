@@ -10,6 +10,7 @@ interface FileUploadProps {
 
 import { useCooldown } from '../context/useCooldown';
 import { useUpload } from '../context/useUpload';
+import { normalizeFilenameEncoding } from '../utils/filename';
 
 const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
     const { cooldown, startCooldown } = useCooldown();
@@ -82,7 +83,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
                     {file ? (
                         <div className="file-info">
                             <FileText size={40} className="file-icon" />
-                            <span>{file.name}</span>
+                            <span>{normalizeFilenameEncoding(file.name)}</span>
                             <small>{(file.size / 1024).toFixed(1)} KB</small>
                         </div>
                     ) : (

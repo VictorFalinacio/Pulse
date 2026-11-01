@@ -1,5 +1,6 @@
 import * as sprintService from '../services/sprintService.js';
 import { validateFileMagicBytes } from '../utils/uploadValidation.js';
+import { normalizeFilenameEncoding } from '../utils/filenameEncoding.js';
 
 export const createSprint = async (req, res) => {
     try {
@@ -74,7 +75,7 @@ export const uploadSprintData = async (req, res) => {
             return res.status(400).json({ msg: 'Arquivo inválido ou corrompido.' });
         }
 
-        const result = await sprintService.processSprintUpload(req.user.id, id, day, buffer, mimetype, originalname);
+        const result = await sprintService.processSprintUpload(req.user.id, id, day, buffer, mimetype, normalizeFilenameEncoding(originalname));
         
         res.json(result);
 

@@ -5,6 +5,7 @@ import Button from '../components/Button';
 import CreateSprintModal from '../components/CreateSprintModal';
 import AnalysisDisplay from '../components/AnalysisDisplay';
 import { apiFetch } from '../utils/api';
+import { normalizeFilenameEncoding } from '../utils/filename';
 
 import { useCooldown } from '../context/useCooldown';
 import { useUpload } from '../context/useUpload';
@@ -203,7 +204,7 @@ const SprintDashboard: React.FC = () => {
                                                             <CheckCircle size={14} />
                                                         </div>
                                                         <Upload size={24} />
-                                                        <span className="file-name">{uploadData.fileName}</span>
+                                                        <span className="file-name">{normalizeFilenameEncoding(uploadData.fileName)}</span>
                                                     </div>
                                                 ) : (
                                                     <div className="upload-placeholder">
@@ -386,11 +387,14 @@ const SprintDashboard: React.FC = () => {
 
 
                 .sprint-dashboard-layout {
-                    display: grid;
-                    grid-template-columns: 1fr 550px;
-                    gap: 3rem;
-                    align-items: start;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2rem;
+                    align-items: stretch;
                 }
+
+                .sprint-main-content,
+                .sprint-summary-sidebar { width: 100%; min-width: 0; }
 
                 .sprint-info-header {
                     margin-bottom: 2.5rem;
@@ -446,7 +450,7 @@ const SprintDashboard: React.FC = () => {
 
                 .upload-grid {
                     display: grid;
-                    grid-template-columns: repeat(5, 1fr);
+                    grid-template-columns: repeat(5, minmax(0, 1fr));
                     gap: 1rem;
                     margin-bottom: 2rem;
                 }
@@ -455,6 +459,7 @@ const SprintDashboard: React.FC = () => {
                     display: flex;
                     flex-direction: column;
                     gap: 0.5rem;
+                    min-width: 0;
                 }
 
                 .day-label {
@@ -463,6 +468,7 @@ const SprintDashboard: React.FC = () => {
                     font-size: 0.8rem;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
+                    overflow-wrap: anywhere;
                 }
 
                 .upload-square {
@@ -582,7 +588,11 @@ const SprintDashboard: React.FC = () => {
                     max-width: 100%;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    white-space: nowrap;
+                    white-space: normal;
+                    overflow-wrap: anywhere;
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
+                    -webkit-line-clamp: 3;
                     color: var(--text-primary);
                 }
 
@@ -592,9 +602,9 @@ const SprintDashboard: React.FC = () => {
                     border-radius: 20px;
                     display: flex;
                     flex-direction: column;
-                    position: sticky;
-                    top: 100px;
-                    max-height: calc(100vh - 120px);
+                    position: static;
+                    max-height: none;
+                    overflow: visible;
                 }
 
                 .sidebar-header {
@@ -619,9 +629,10 @@ const SprintDashboard: React.FC = () => {
                 .icon-btn { padding: 8px !important; }
 
                 .summary-content {
-                    flex: 1;
-                    overflow-y: auto;
+                    flex: none;
+                    overflow: visible;
                     padding: 1.5rem;
+                    min-width: 0;
                 }
 
                 .empty-summary {
@@ -635,17 +646,7 @@ const SprintDashboard: React.FC = () => {
                     text-align: center;
                 }
 
-                .analysis-wrapper { margin-top: -2rem; }
-
-                @media (max-width: 1200px) {
-                    .sprint-dashboard-layout {
-                        grid-template-columns: 1fr;
-                    }
-                    .sprint-summary-sidebar {
-                        position: static;
-                        max-height: none;
-                    }
-                }
+                .analysis-wrapper { margin-top: 0; width: 100%; min-width: 0; }
                 
                 @media (max-width: 768px) {
                     .upload-grid {

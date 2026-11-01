@@ -5,6 +5,7 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import { apiFetch } from '../utils/api';
 import type { AnalysisRecord } from '../types/api';
+import { normalizeFilenameEncoding } from '../utils/filename';
 
 export interface AnalysisDisplayHandle {
   download: () => void;
@@ -21,6 +22,7 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const fileName = normalizeFilenameEncoding(analysis.fileName);
 
   const handleDownload = () => {
     const element = document.createElement("a");
@@ -34,7 +36,7 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
     `;
     const file = new Blob([htmlContent], { type: 'application/msword' });
     element.href = URL.createObjectURL(file);
-    element.download = `Relatorio_Agile_${analysis.fileName.split('.')[0]}.doc`;
+    element.download = `Relatorio_Agile_${fileName.split('.')[0]}.doc`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -88,7 +90,7 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
           <h3>Relatório de Análise Ágil</h3>
         </div>
         <div className="analysis-meta">
-          <span className="analysis-file"><FileText size={14} /> {analysis.fileName}</span>
+          <span className="analysis-file"><FileText size={14} /> {fileName}</span>
           <span className="analysis-date"><Calendar size={14} /> {new Date(analysis.createdAt).toLocaleDateString()}</span>
         </div>
       </div>
@@ -101,6 +103,8 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
         .analysis-display {
           margin: 2rem auto;
           max-width: 900px;
+          width: 100%;
+          min-width: 0;
           padding: 3.5rem;
           background: #0a0a0a;
           border: 1px solid var(--card-border);
@@ -112,6 +116,8 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
 
         .sprint-summary-sidebar .analysis-display {
           margin: 0;
+          max-width: none;
+          width: 100%;
           padding: 0;
           background: transparent;
           border: none;
@@ -160,26 +166,32 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
 
         .analysis-meta {
           display: flex;
+          flex-wrap: wrap;
           gap: 2rem;
           font-size: 0.9rem;
           color: var(--text-secondary);
+          min-width: 0;
         }
 
         .analysis-meta span {
           display: flex;
           align-items: center;
           gap: 0.5rem;
+          min-width: 0;
+          overflow-wrap: anywhere;
         }
 
         .markdown-content {
           line-height: 1.8;
           font-size: 1.1rem;
           color: #d1d1d1;
+          min-width: 0;
+          overflow-wrap: anywhere;
         }
 
         /* Professional Report Styling */
         .markdown-content h1 { 
-          font-size: 2.4rem; 
+          font-size: 2rem;
           margin-bottom: 1.5rem; 
           color: #fff; 
           font-weight: 800;
@@ -197,8 +209,8 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
         
         .markdown-content h3 { 
           font-size: 1.3rem; 
-          margin-top: 2.5rem; 
-          margin-bottom: 1.25rem;
+          margin-top: 2rem;
+          margin-bottom: 0.85rem;
           color: var(--primary); 
           font-weight: 700;
           text-transform: uppercase;
@@ -209,7 +221,7 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
           border: 0;
           height: 1px;
           background: var(--card-border);
-          margin: 4rem 0;
+          margin: 2rem 0;
         }
 
         .markdown-content blockquote {

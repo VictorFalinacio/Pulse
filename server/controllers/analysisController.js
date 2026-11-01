@@ -1,5 +1,6 @@
 import * as analysisService from '../services/analysisService.js';
 import { validateFileMagicBytes } from '../utils/uploadValidation.js';
+import { normalizeFilenameEncoding } from '../utils/filenameEncoding.js';
 
 export const analisar = async (req, res) => {
     try {
@@ -17,7 +18,7 @@ export const analisar = async (req, res) => {
             return res.status(400).json({ msg: 'Arquivo inválido ou corrompido.' });
         }
 
-        const analysis = await analysisService.processAnalysis(req.user.id, buffer, mimetype, originalname);
+        const analysis = await analysisService.processAnalysis(req.user.id, buffer, mimetype, normalizeFilenameEncoding(originalname));
         res.json(analysis);
 
     } catch (error) {

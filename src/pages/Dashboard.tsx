@@ -4,6 +4,7 @@ import { LogOut, Activity, History, FileText, ChevronRight, Trash2 } from 'lucid
 import Button from '../components/Button';
 import ConfirmModal from '../components/ConfirmModal';
 import { apiFetch } from '../utils/api';
+import { normalizeFilenameEncoding } from '../utils/filename';
 
 import FileUpload from '../components/FileUpload';
 import AnalysisDisplay from '../components/AnalysisDisplay';
@@ -142,7 +143,7 @@ const Dashboard: React.FC = () => {
                       >
                         <FileText size={18} className="item-icon" />
                         <div className="item-info">
-                          <span className="item-name">{item.fileName}</span>
+                          <span className="item-name">{normalizeFilenameEncoding(item.fileName)}</span>
                           <span className="item-date">{new Date(item.createdAt).toLocaleDateString('pt-BR')}</span>
                         </div>
                         <div className="item-actions">
