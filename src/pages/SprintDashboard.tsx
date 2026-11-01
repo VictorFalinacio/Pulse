@@ -106,6 +106,9 @@ const SprintDashboard: React.FC = () => {
                         // Recarrega a sprint completa do servidor para garantir
                         // que o aggregatedSummary atualizado seja exibido
                         await fetchSprint();
+                        if ('summaryUpdated' in data && data.summaryUpdated === false) {
+                            alert('A reunião foi salva, mas o resumo consolidado não pôde ser atualizado. Tente enviar novamente mais tarde.');
+                        }
                     }
                 });
             } catch (err: unknown) {

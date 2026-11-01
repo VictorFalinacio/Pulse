@@ -3,12 +3,12 @@ import bcrypt from 'bcryptjs';
 
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
-    verificationToken: { type: String },
+    verificationTokenHash: { type: String },
     verificationTokenExpiresAt: { type: Date }, // Add expiration for verification token - 24 hours
-    resetPasswordToken: { type: String },
+    resetPasswordTokenHash: { type: String },
     resetPasswordExpire: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
@@ -20,13 +20,6 @@ UserSchema.pre('save', async function () {
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Auto-delete unverified users after 24 hours TTL
-UserSchema.index(
-    { createdAt: 1 },
-    { 
-        expireAfterSeconds: 86400, // 24 hours
-        partialFilterExpression: { isVerified: false }
-    }
-);
+// Do not use a TTL index on createdAt: it would also expire verified accounts.
 
 export default mongoose.model('User', UserSchema);

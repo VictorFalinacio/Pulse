@@ -42,4 +42,5 @@ export interface ApiError {
 export type UploadResult = AnalysisRecord | {
   analysis: AnalysisRecord;
   sprint?: SprintRecord;
+  summaryUpdated?: boolean;
 };
