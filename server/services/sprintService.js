@@ -37,7 +37,12 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
     try {
         const current = await Sprint.findById(sprintId).populate('uploads.analysisId');
         const text = (current.uploads || []).filter(item => item.analysisId?.originalText).sort((a, b) => a.day - b.day).map(item => `Dia ${item.day}:\n${item.analysisId.originalText}`).join('\n\n');
-        const summary = await analyzeSprintContext([text.slice(-config.geminiMaxSprintContextChars)]);
+        let summary = await analyzeSprintContext([text.slice(-config.geminiMaxSprintContextChars)]);
+        const dates = (current.uploads || []).map(item => new Date(item.uploadedAt)).filter(date => !Number.isNaN(date.getTime())).sort((a, b) => a - b);
+        if (dates.length) {
+            const formatDate = date => date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            summary = `**Período analisado:** ${formatDate(dates[0])} a ${formatDate(dates[dates.length - 1])}\n\n${summary}`;
+        }
         summaryUpdated = (await Sprint.updateOne({ _id: sprintId, userId }, { $set: { aggregatedSummary: summary } })).matchedCount === 1;
     } catch (error) { console.warn('Sprint summary refresh failed:', error.message); }
     return { sprint: await Sprint.findById(sprintId).populate('uploads.analysisId'), analysis: newAnalysis, summaryUpdated };
