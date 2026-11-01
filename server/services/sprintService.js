@@ -1,12 +1,11 @@
 import Sprint from '../models/Sprint.js';
 import Analysis from '../models/Analysis.js';
-import pdfParse from 'pdf-parse';
-import mammoth from 'mammoth';
 import { analyzeText, analyzeSprintContext } from '../utils/groq.js';
 import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
 import * as analysisService from './analysisService.js';
 import { persistSprintUpload } from '../utils/sprintUploadPersistence.js';
+import { extractText } from '../utils/textExtraction.js';
 
 export const countUserSprints = async (userId) => {
     return await Sprint.countDocuments({ userId });
@@ -55,24 +54,13 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
         error.remaining = cooldown.remaining;
         throw error;
     }
-    let extractedText = '';
-    if (mimetype === 'application/pdf') {
-        const pdfData = await pdfParse(fileBuffer);
-        extractedText = pdfData.text;
-    } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        const result = await mammoth.extractRawText({ buffer: fileBuffer });
-        extractedText = result.value;
-    } else if (mimetype === 'text/plain') {
-        extractedText = fileBuffer.toString('utf-8');
-    }
+    let extractedText = await extractText(fileBuffer, mimetype);
 
     if (!extractedText || extractedText.trim().length === 0) {
         throw new Error('BAD_REQUEST_EMPTY');
     }
 
-    if (extractedText.length > 50000) {
-        extractedText = extractedText.substring(0, 50000);
-    }
+    extractedText = extractedText.slice(0, config.aiMaxInputChars);
 
     // Preparar textos para agregação de contexto ANTES de salvar (para rodar em paralelo)
     const populatedSprintForContext = await Sprint.findById(sprintId).populate('uploads.analysisId');

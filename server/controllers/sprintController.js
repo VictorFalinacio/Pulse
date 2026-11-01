@@ -84,6 +84,7 @@ export const uploadSprintData = async (req, res) => {
         if (error.message === 'NOT_FOUND') return res.status(404).json({ msg: 'Sprint não encontrada.' });
         if (error.message === 'UNAUTHORIZED') return res.status(401).json({ msg: 'Não autorizado.' });
         if (error.message === 'BAD_REQUEST_DAY') return res.status(400).json({ msg: 'Dia inválido para esta sprint.' });
+        if (error.message === 'UNSUPPORTED_FORMAT') return res.status(400).json({ msg: 'Formato de arquivo não suportado. Use PDF, DOCX ou TXT.' });
         if (error.message === 'BAD_REQUEST_EMPTY') return res.status(400).json({ msg: 'Não foi possível extrair texto do arquivo.' });
         if (error.message === 'AI_INPUT_TOO_LARGE') return res.status(413).json({ msg: 'O texto acumulado ultrapassa o limite de contexto configurado.' });
         if (error.message === 'AI_TIMEOUT') return res.status(504).json({ msg: 'A análise levou muito tempo. Tente novamente com um arquivo menor.' });
