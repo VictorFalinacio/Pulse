@@ -1,5 +1,6 @@
 import * as sprintService from '../services/sprintService.js';
 import { validateFileMagicBytes } from '../utils/uploadValidation.js';
+import { normalizeFilenameEncoding } from '../utils/filenameEncoding.js';
 
 export const createSprint = async (req, res) => {
     try {
@@ -74,7 +75,7 @@ export const uploadSprintData = async (req, res) => {
             return res.status(400).json({ msg: 'Arquivo inválido ou corrompido.' });
         }
 
-        const result = await sprintService.processSprintUpload(req.user.id, id, day, buffer, mimetype, originalname);
+        const result = await sprintService.processSprintUpload(req.user.id, id, day, buffer, mimetype, normalizeFilenameEncoding(originalname));
         
         res.json(result);
 
@@ -84,9 +85,16 @@ export const uploadSprintData = async (req, res) => {
         if (error.message === 'NOT_FOUND') return res.status(404).json({ msg: 'Sprint não encontrada.' });
         if (error.message === 'UNAUTHORIZED') return res.status(401).json({ msg: 'Não autorizado.' });
         if (error.message === 'BAD_REQUEST_DAY') return res.status(400).json({ msg: 'Dia inválido para esta sprint.' });
+        if (error.message === 'UNSUPPORTED_FORMAT') return res.status(400).json({ msg: 'Formato de arquivo não suportado. Use PDF, DOCX ou TXT.' });
         if (error.message === 'BAD_REQUEST_EMPTY') return res.status(400).json({ msg: 'Não foi possível extrair texto do arquivo.' });
         if (error.message === 'AI_INPUT_TOO_LARGE') return res.status(413).json({ msg: 'O texto acumulado ultrapassa o limite de contexto configurado.' });
         if (error.message === 'AI_TIMEOUT') return res.status(504).json({ msg: 'A análise levou muito tempo. Tente novamente com um arquivo menor.' });
+        if (error.message === 'AI_OUTPUT_TRUNCATED') return res.status(502).json({ msg: 'O relatório excedeu o limite de saída. Tente um arquivo menor.' });
+        if (error.message === 'AI_RATE_LIMITED') return res.status(429).json({ msg: 'Limite temporário do provedor de IA atingido. Tente novamente em instantes.' });
+        if (error.message === 'AI_PROVIDER_UNAVAILABLE') return res.status(503).json({ msg: 'O provedor de IA está temporariamente indisponível. Tente novamente em instantes.' });
+        if (error.message === 'GROQ_NOT_CONFIGURED') return res.status(503).json({ msg: 'O serviço de IA não está configurado.' });
+        if (error.message === 'AI_PROVIDER_ERROR' || error.message === 'AI_EMPTY_RESPONSE') return res.status(502).json({ msg: 'O provedor de IA não retornou um relatório válido.' });
+        if (error.message === 'UPLOAD_COOLDOWN') return res.status(429).json({ msg: `Aguarde ${error.remaining} segundos antes de enviar outra reunião.` });
         if (error.message.startsWith('Falha ao analisar')) return res.status(502).json({ msg: 'A análise por IA falhou. Tente novamente em instantes.' });
         
         res.status(500).json({ msg: 'Erro ao processar o upload da sprint.' });

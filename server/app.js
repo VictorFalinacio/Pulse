@@ -8,12 +8,14 @@ import authRoutes from './routes/auth.js';
 import analysisRoutes from './routes/analysis.js';
 import sprintRoutes from './routes/sprint.js';
 import { log } from './utils/logger.js';
+import { config } from './config.js';
 
 const app = express();
 let mongoConnectionPromise;
 const mongoUri = process.env.MONGO_URI;
 
 app.disable('x-powered-by');
+app.set('trust proxy', config.trustProxyHops);
 app.use(helmet());
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(value => value.trim()).filter(Boolean)
     || ['http://localhost:5173', 'http://localhost:3000'];
@@ -33,13 +35,6 @@ const generalLimiter = rateLimit({
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     message: { msg: 'Muitas requisições deste IP, tente novamente mais tarde.' }
-});
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    standardHeaders: 'draft-8',
-    legacyHeaders: false,
-    message: { msg: 'Muitas tentativas de autenticação, tente novamente em 15 minutos.' }
 });
 
 app.use((req, res, next) => {
@@ -80,7 +75,7 @@ app.use('/api/', async (req, res, next) => {
     return next();
 });
 
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/analysis', analysisRoutes);
 app.use('/api/sprint', sprintRoutes);
 app.get('/api/health', (_req, res) => {

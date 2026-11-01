@@ -1,0 +1,1 @@
+Uma equipe de produto realizou a daily. A pessoa desenvolvedora 1 não consegue executar os testes porque o ambiente de integração está indisponível desde ontem. A pessoa de operações está investigando. A equipe adiou a validação final até o ambiente voltar. A equipe pretende atualizar o estado amanhã.

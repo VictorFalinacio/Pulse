@@ -5,12 +5,19 @@ import crypto from 'crypto';
 import validator from 'validator';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/mailer.js';
 import { validatePasswordStrength } from '../utils/passwordValidator.js';
+import { assertString } from '../utils/inputGuards.js';
+
+const normalizeEmail = (email) => assertString(email, 'EMAIL_INVALID').trim().toLowerCase();
+const hashToken = (token) => crypto.createHash('sha256').update(token, 'utf8').digest('hex');
 
 export const registerUser = async (name, email, password) => {
-    if (!email || !validator.isEmail(email)) throw new Error('EMAIL_INVALID');
+    name = assertString(name, 'NAME_INVALID').trim();
+    email = normalizeEmail(email);
+    password = assertString(password, 'PASSWORD_INVALID');
+    if (!validator.isEmail(email)) throw new Error('EMAIL_INVALID');
     const passwordValidation = validatePasswordStrength(password);
     if (!passwordValidation.isValid) throw new Error(`PASSWORD_WEAK:${passwordValidation.errors[0]}`);
-    if (!name || name.trim().length < 2) throw new Error('NAME_INVALID');
+    if (name.length < 2) throw new Error('NAME_INVALID');
     
     let user = await User.findOne({ email });
     if (user) throw new Error('USER_EXISTS');
@@ -30,6 +37,8 @@ export const registerUser = async (name, email, password) => {
 
 export const loginUser = async (email, password) => {
     if (!email || !password) throw new Error('MISSING_CREDENTIALS');
+    email = normalizeEmail(email);
+    password = assertString(password, 'PASSWORD_INVALID');
     let user = await User.findOne({ email });
     if (!user) throw new Error('INVALID_CREDENTIALS');
 
@@ -50,29 +59,31 @@ export const loginUser = async (email, password) => {
 
 export const verifyEmail = async (token) => {
     if (!token) throw new Error('MISSING_TOKEN');
-    const user = await User.findOne({ verificationToken: token, verificationTokenExpiresAt: { $gt: new Date() } });
+    token = assertString(token, 'TOKEN_INVALID');
+    const user = await User.findOne({ verificationTokenHash: hashToken(token), verificationTokenExpiresAt: { $gt: new Date() } });
     if (!user) throw new Error('INVALID_TOKEN');
 
     user.isVerified = true;
-    user.verificationToken = undefined;
+    user.verificationTokenHash = undefined;
     user.verificationTokenExpiresAt = undefined;
     await user.save();
 };
 
 export const requestPasswordReset = async (email) => {
-    if (!email || !validator.isEmail(email)) throw new Error('EMAIL_INVALID');
+    email = normalizeEmail(email);
+    if (!validator.isEmail(email)) throw new Error('EMAIL_INVALID');
     const user = await User.findOne({ email });
     if (!user) return; // Don't reveal account existence
 
     const resetToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = resetToken;
+    user.resetPasswordTokenHash = hashToken(resetToken);
     user.resetPasswordExpire = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
     await user.save();
 
     try {
         await sendPasswordResetEmail(user.email, resetToken);
     } catch (err) {
-        user.resetPasswordToken = undefined;
+        user.resetPasswordTokenHash = undefined;
         user.resetPasswordExpire = undefined;
         await user.save();
         throw new Error('EMAIL_SEND_ERROR');
@@ -81,21 +92,24 @@ export const requestPasswordReset = async (email) => {
 
 export const verifyResetToken = async (token) => {
     if (!token) throw new Error('MISSING_TOKEN');
-    const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpire: { $gt: new Date() } });
+    token = assertString(token, 'TOKEN_INVALID');
+    const user = await User.findOne({ resetPasswordTokenHash: hashToken(token), resetPasswordExpire: { $gt: new Date() } });
     if (!user) throw new Error('INVALID_TOKEN');
 };
 
 export const resetPassword = async (token, password) => {
     if (!token || !password) throw new Error('MISSING_CREDENTIALS');
+    token = assertString(token, 'TOKEN_INVALID');
+    password = assertString(password, 'PASSWORD_INVALID');
     
     const passwordValidation = validatePasswordStrength(password);
     if (!passwordValidation.isValid) throw new Error(`PASSWORD_WEAK:${passwordValidation.errors[0]}`);
 
-    const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpire: { $gt: new Date() } });
+    const user = await User.findOne({ resetPasswordTokenHash: hashToken(token), resetPasswordExpire: { $gt: new Date() } });
     if (!user) throw new Error('INVALID_TOKEN');
 
     user.password = password;
-    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenHash = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
 };

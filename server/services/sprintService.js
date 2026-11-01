@@ -1,10 +1,11 @@
 import Sprint from '../models/Sprint.js';
 import Analysis from '../models/Analysis.js';
-import pdfParse from 'pdf-parse';
-import mammoth from 'mammoth';
 import { analyzeText, analyzeSprintContext } from '../utils/groq.js';
 import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
+import * as analysisService from './analysisService.js';
+import { persistSprintUpload } from '../utils/sprintUploadPersistence.js';
+import { extractText } from '../utils/textExtraction.js';
 
 export const countUserSprints = async (userId) => {
     return await Sprint.countDocuments({ userId });
@@ -47,24 +48,19 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
     const dayNumber = Number(day);
     if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > sprint.durationDays) throw new Error('BAD_REQUEST_DAY');
 
-    let extractedText = '';
-    if (mimetype === 'application/pdf') {
-        const pdfData = await pdfParse(fileBuffer);
-        extractedText = pdfData.text;
-    } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        const result = await mammoth.extractRawText({ buffer: fileBuffer });
-        extractedText = result.value;
-    } else if (mimetype === 'text/plain') {
-        extractedText = fileBuffer.toString('utf-8');
+    const cooldown = await analysisService.checkCooldown(userId);
+    if (cooldown.onCooldown) {
+        const error = new Error('UPLOAD_COOLDOWN');
+        error.remaining = cooldown.remaining;
+        throw error;
     }
+    let extractedText = await extractText(fileBuffer, mimetype);
 
     if (!extractedText || extractedText.trim().length === 0) {
         throw new Error('BAD_REQUEST_EMPTY');
     }
 
-    if (extractedText.length > 50000) {
-        extractedText = extractedText.substring(0, 50000);
-    }
+    extractedText = extractedText.slice(0, config.aiMaxInputChars);
 
     // Preparar textos para agregação de contexto ANTES de salvar (para rodar em paralelo)
     const populatedSprintForContext = await Sprint.findById(sprintId).populate('uploads.analysisId');
@@ -94,36 +90,35 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
 
     await newAnalysis.save();
 
-    const uploadIndex = sprint.uploads.findIndex(u => u.day === dayNumber);
-    if (uploadIndex > -1) {
-        const oldAnalysisId = sprint.uploads[uploadIndex].analysisId;
-        if (oldAnalysisId) {
-            await Analysis.findByIdAndDelete(oldAnalysisId).catch(() => {});
-        }
-        sprint.uploads[uploadIndex] = {
-            day: dayNumber,
-            analysisId: newAnalysis._id,
-            fileName: originalname,
-            uploadedAt: new Date()
-        };
-    } else {
-        sprint.uploads.push({
-            day: dayNumber,
-            analysisId: newAnalysis._id,
-            fileName: originalname,
-            uploadedAt: new Date()
+    const oldAnalysisId = sprint.uploads.find(upload => upload.day === dayNumber)?.analysisId;
+    const oldAnalysisIdValue = oldAnalysisId?._id || oldAnalysisId;
+    const upload = {
+        day: dayNumber,
+        analysisId: newAnalysis._id,
+        fileName: originalname,
+        uploadedAt: new Date()
+    };
+
+    try {
+        await persistSprintUpload(Sprint, {
+            sprintId,
+            userId,
+            dayNumber,
+            upload,
+            aggregatedSummary: globalSummary
         });
+    } catch (error) {
+        await Analysis.findByIdAndDelete(newAnalysis._id).catch(() => {});
+        throw error;
     }
 
-    if (globalSummary) {
-        sprint.aggregatedSummary = globalSummary;
+    if (oldAnalysisIdValue && String(oldAnalysisIdValue) !== String(newAnalysis._id)) {
+        const stillReferenced = await Sprint.exists({ userId, 'uploads.analysisId': oldAnalysisIdValue });
+        if (!stillReferenced) await Analysis.findByIdAndDelete(oldAnalysisIdValue).catch(() => {});
     }
-
-    sprint.markModified('uploads');
-    await sprint.save();
 
     return { 
-        sprint: await Sprint.findById(sprintId).populate('uploads.analysisId'), 
+        sprint: await Sprint.findOne({ _id: sprintId, userId }).populate('uploads.analysisId'), 
         analysis: newAnalysis 
     };
 };
