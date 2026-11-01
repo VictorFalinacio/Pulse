@@ -3,12 +3,12 @@ import bcrypt from 'bcryptjs';
 
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
-    verificationToken: { type: String },
+    verificationTokenHash: { type: String },
     verificationTokenExpiresAt: { type: Date }, // Add expiration for verification token - 24 hours
-    resetPasswordToken: { type: String },
+    resetPasswordTokenHash: { type: String },
     resetPasswordExpire: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });

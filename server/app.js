@@ -34,13 +34,6 @@ const generalLimiter = rateLimit({
     legacyHeaders: false,
     message: { msg: 'Muitas requisições deste IP, tente novamente mais tarde.' }
 });
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    standardHeaders: 'draft-8',
-    legacyHeaders: false,
-    message: { msg: 'Muitas tentativas de autenticação, tente novamente em 15 minutos.' }
-});
 
 app.use((req, res, next) => {
     const startedAt = Date.now();
@@ -80,7 +73,7 @@ app.use('/api/', async (req, res, next) => {
     return next();
 });
 
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/analysis', analysisRoutes);
 app.use('/api/sprint', sprintRoutes);
 app.get('/api/health', (_req, res) => {
