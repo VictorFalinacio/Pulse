@@ -452,15 +452,17 @@ const SprintDashboard: React.FC = () => {
 
                 .upload-grid {
                     display: grid;
-                    grid-template-columns: repeat(5, 1fr);
+                    grid-template-columns: repeat(5, minmax(0, 1fr));
                     gap: 1rem;
                     margin-bottom: 2rem;
+                    width: 100%;
                 }
 
                 .upload-day-box {
                     display: flex;
                     flex-direction: column;
                     gap: 0.5rem;
+                    min-width: 0;
                 }
 
                 .day-label {
@@ -474,6 +476,8 @@ const SprintDashboard: React.FC = () => {
                 .upload-square {
                     height: 290px;
                     min-width: 0;
+                    width: 100%;
+                    overflow: hidden;
                     background: #0a0a0a;
                     border: 1px solid var(--card-border);
                     border-radius: 12px;
@@ -565,6 +569,8 @@ const SprintDashboard: React.FC = () => {
                     align-items: center;
                     gap: 0.4rem;
                     width: 100%;
+                    min-width: 0;
+                    overflow: hidden;
                     padding: 0.75rem;
                     color: #1e7e4e;
                 }
