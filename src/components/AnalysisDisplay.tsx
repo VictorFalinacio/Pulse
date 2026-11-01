@@ -5,6 +5,7 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import { apiFetch } from '../utils/api';
 import type { AnalysisRecord } from '../types/api';
+import { normalizeFileName } from '../utils/fileName';
 
 export interface AnalysisDisplayHandle {
   download: () => void;
@@ -21,20 +22,35 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const displayFileName = normalizeFileName(analysis.fileName);
 
   const handleDownload = () => {
     const element = document.createElement("a");
+    const escapeHtml = (value: string) => value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    const reportHtml = escapeHtml(analysis.summary)
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/(?:<li>.*<\/li>\n?)+/g, match => `<ul>${match}</ul>`)
+      .replace(/\n{2,}/g, '<br><br>')
+      .replace(/\n/g, '<br>');
     const htmlContent = `
-      <html>
-        <head><meta charset="UTF-8"></head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; padding: 40px;">
-          ${analysis.summary.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}
+      <html><head><meta charset="UTF-8"><title>Relatório de Análise Ágil</title></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; padding: 40px; color: #171717;">
+          <h1>Relatório de Análise Ágil</h1>
+          ${reportHtml}
         </body>
       </html>
     `;
     const file = new Blob([htmlContent], { type: 'application/msword' });
     element.href = URL.createObjectURL(file);
-    element.download = `Relatorio_Agile_${analysis.fileName.split('.')[0]}.doc`;
+    element.download = `Relatorio_Agile_${displayFileName.split('.')[0]}.doc`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -88,7 +104,7 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
           <h3>Relatório de Análise Ágil</h3>
         </div>
         <div className="analysis-meta">
-          <span className="analysis-file"><FileText size={14} /> {analysis.fileName}</span>
+          <span className="analysis-file"><FileText size={14} /> {displayFileName}</span>
           <span className="analysis-date"><Calendar size={14} /> {new Date(analysis.createdAt).toLocaleDateString()}</span>
         </div>
       </div>
@@ -101,7 +117,7 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
         .analysis-display {
           margin: 2rem auto;
           max-width: 900px;
-          padding: 3.5rem;
+          padding: 4.75rem 3.5rem 3.5rem;
           background: #0a0a0a;
           border: 1px solid var(--card-border);
           border-radius: 16px;
@@ -132,10 +148,12 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
 
         .analysis-actions {
           position: absolute;
-          top: 1.5rem;
-          right: 1.5rem;
+          top: 1.25rem;
+          right: 1.25rem;
           display: flex;
-          gap: 0.75rem;
+          gap: 0.9rem;
+          align-items: center;
+          flex-wrap: wrap;
         }
 
         .analysis-header {
@@ -160,7 +178,8 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
 
         .analysis-meta {
           display: flex;
-          gap: 2rem;
+          gap: 2.5rem;
+          flex-wrap: wrap;
           font-size: 0.9rem;
           color: var(--text-secondary);
         }
@@ -305,8 +324,8 @@ const AnalysisDisplay = forwardRef<AnalysisDisplayHandle, AnalysisDisplayProps>(
         }
 
         @media (max-width: 768px) {
-          .analysis-display { padding: 1.5rem; margin-top: 4rem; }
-          .analysis-actions { top: -3.5rem; right: 0; width: 100%; justify-content: center; flex-wrap: wrap; }
+          .analysis-display { padding: 4.5rem 1.5rem 1.5rem; margin-top: 4rem; }
+          .analysis-actions { top: 0.75rem; right: 0.75rem; left: 0.75rem; justify-content: flex-end; }
           .analysis-meta { flex-direction: column; gap: 0.5rem; }
         }
 

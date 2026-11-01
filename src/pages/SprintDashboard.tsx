@@ -616,7 +616,8 @@ const SprintDashboard: React.FC = () => {
 
                 .sidebar-actions {
                     display: flex;
-                    gap: 0.5rem;
+                    gap: 0.9rem;
+                    align-items: center;
                 }
 
                 .icon-btn { padding: 8px !important; }
@@ -638,7 +639,7 @@ const SprintDashboard: React.FC = () => {
                     text-align: center;
                 }
 
-                .analysis-wrapper { margin-top: -2rem; }
+                .analysis-wrapper { margin-top: 0.5rem; }
 
                 @media (max-width: 1200px) {
                     .sprint-dashboard-layout {
