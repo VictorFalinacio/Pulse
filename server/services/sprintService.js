@@ -6,6 +6,7 @@ import { analyzeText, analyzeSprintContext } from '../utils/groq.js';
 import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
 import * as analysisService from './analysisService.js';
+import { persistSprintUpload } from '../utils/sprintUploadPersistence.js';
 
 export const countUserSprints = async (userId) => {
     return await Sprint.countDocuments({ userId });
@@ -101,36 +102,35 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
 
     await newAnalysis.save();
 
-    const uploadIndex = sprint.uploads.findIndex(u => u.day === dayNumber);
-    if (uploadIndex > -1) {
-        const oldAnalysisId = sprint.uploads[uploadIndex].analysisId;
-        if (oldAnalysisId) {
-            await Analysis.findByIdAndDelete(oldAnalysisId).catch(() => {});
-        }
-        sprint.uploads[uploadIndex] = {
-            day: dayNumber,
-            analysisId: newAnalysis._id,
-            fileName: originalname,
-            uploadedAt: new Date()
-        };
-    } else {
-        sprint.uploads.push({
-            day: dayNumber,
-            analysisId: newAnalysis._id,
-            fileName: originalname,
-            uploadedAt: new Date()
+    const oldAnalysisId = sprint.uploads.find(upload => upload.day === dayNumber)?.analysisId;
+    const oldAnalysisIdValue = oldAnalysisId?._id || oldAnalysisId;
+    const upload = {
+        day: dayNumber,
+        analysisId: newAnalysis._id,
+        fileName: originalname,
+        uploadedAt: new Date()
+    };
+
+    try {
+        await persistSprintUpload(Sprint, {
+            sprintId,
+            userId,
+            dayNumber,
+            upload,
+            aggregatedSummary: globalSummary
         });
+    } catch (error) {
+        await Analysis.findByIdAndDelete(newAnalysis._id).catch(() => {});
+        throw error;
     }
 
-    if (globalSummary) {
-        sprint.aggregatedSummary = globalSummary;
+    if (oldAnalysisIdValue && String(oldAnalysisIdValue) !== String(newAnalysis._id)) {
+        const stillReferenced = await Sprint.exists({ userId, 'uploads.analysisId': oldAnalysisIdValue });
+        if (!stillReferenced) await Analysis.findByIdAndDelete(oldAnalysisIdValue).catch(() => {});
     }
-
-    sprint.markModified('uploads');
-    await sprint.save();
 
     return { 
-        sprint: await Sprint.findById(sprintId).populate('uploads.analysisId'), 
+        sprint: await Sprint.findOne({ _id: sprintId, userId }).populate('uploads.analysisId'), 
         analysis: newAnalysis 
     };
 };
