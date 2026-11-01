@@ -106,3 +106,4 @@ Rotas autenticadas esperam `Authorization: Bearer <JWT>`. Corpos e respostas sã
 | `npm run lint` | Executa ESLint. |
 | `npm run preview` | Serve o build local. |
 | `npm test` | Executa testes unitários com o runner integrado ao Node.js. |
+| `npm run evals` | Consulta o Groq com atas sintéticas e verifica estrutura, placeholders, responsáveis e resistência a prompt injection. Sem `GROQ_API_KEY`, avisa e termina sem erro. |

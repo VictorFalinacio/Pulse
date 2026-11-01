@@ -1,0 +1,1 @@
+Uma equipe de produto planejou três tarefas: corrigir a paginação, adicionar filtro por estado e atualizar testes de regressão. A pessoa de QA apontou dependência de dados de teste que ainda não estão disponíveis. A equipe decidiu começar pelas tarefas sem dependência e revisar a estimativa após receber os dados.
