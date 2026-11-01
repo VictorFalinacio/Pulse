@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { LogOut, Activity, Plus, Upload, CheckCircle, FileText, Download, Printer, Loader2 } from 'lucide-react';
 import Button from '../components/Button';
+import ConfirmModal from '../components/ConfirmModal';
 import CreateSprintModal from '../components/CreateSprintModal';
 import AnalysisDisplay from '../components/AnalysisDisplay';
 import { apiFetch } from '../utils/api';
@@ -22,6 +23,7 @@ const SprintDashboard: React.FC = () => {
     const [uploadingDay, setUploadingDay] = useState<number | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisRecord | null>(null);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const analysisRef = useRef<AnalysisDisplayHandle | null>(null);
 
@@ -107,13 +109,13 @@ const SprintDashboard: React.FC = () => {
                         // que o aggregatedSummary atualizado seja exibido
                         await fetchSprint();
                         if ('summaryUpdated' in data && data.summaryUpdated === false) {
-                            alert('A reunião foi salva, mas o resumo consolidado não pôde ser atualizado. Tente enviar novamente mais tarde.');
+                            setUploadError('A reunião foi salva, mas o resumo consolidado não pôde ser atualizado. Tente novamente mais tarde.');
                         }
                     }
                 });
             } catch (err: unknown) {
                 console.error('Erro no upload:', err);
-                alert(err instanceof Error ? err.message : 'Erro de conexão ao fazer upload.');
+                setUploadError(err instanceof Error ? err.message : 'Erro de conexão ao fazer upload.');
             } finally {
                 setUploadingDay(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';
@@ -657,6 +659,16 @@ const SprintDashboard: React.FC = () => {
                     }
                 }
             `}</style>
+            <ConfirmModal
+                isOpen={Boolean(uploadError)}
+                title="Não foi possível concluir o upload"
+                message={uploadError || ''}
+                confirmText="Entendi"
+                hideCancel
+                variant="info"
+                onConfirm={() => setUploadError(null)}
+                onCancel={() => setUploadError(null)}
+            />
         </div>
     );
 };
