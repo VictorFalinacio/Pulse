@@ -5,6 +5,7 @@ import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
 import { extractText } from '../utils/extractText.js';
 import { log } from '../utils/logger.js';
+import { normalizeFileName } from '../utils/fileName.js';
 
 export const countUserSprints = async (userId) => {
     return await Sprint.countDocuments({ userId });
@@ -72,7 +73,7 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
 
     const newAnalysis = new Analysis({
         userId,
-        fileName: originalname,
+        fileName: normalizeFileName(originalname),
         fileType: mimetype,
         originalText: extractedText,
         summary: aiSummary,
@@ -82,7 +83,8 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
     await newAnalysis.save();
 
     const uploadedAt = new Date();
-    const upload = { day: dayNumber, analysisId: newAnalysis._id, fileName: originalname, uploadedAt };
+    const normalizedFileName = normalizeFileName(originalname);
+    const upload = { day: dayNumber, analysisId: newAnalysis._id, fileName: normalizedFileName, uploadedAt };
     const updated = await Sprint.findOneAndUpdate(
         { _id: sprint._id, userId },
         [{ $set: {

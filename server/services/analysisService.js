@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { analyzeText } from '../utils/gemini.js';
 import { assertOwned } from '../utils/ownership.js';
 import { extractText } from '../utils/extractText.js';
+import { normalizeFileName } from '../utils/fileName.js';
 
 export const checkCooldown = async (userId) => {
     const lastAnalysis = await Analysis.findOne({ userId }).sort({ createdAt: -1 });
@@ -27,7 +28,7 @@ export const processAnalysis = async (userId, fileBuffer, mimetype, originalname
 
     const newAnalysis = new Analysis({
         userId,
-        fileName: originalname,
+        fileName: normalizeFileName(originalname),
         fileType: mimetype,
         originalText: extractedText,
         summary: aiSummary
