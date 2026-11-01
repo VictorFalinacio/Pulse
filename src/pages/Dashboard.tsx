@@ -8,6 +8,7 @@ import { apiFetch } from '../utils/api';
 import FileUpload from '../components/FileUpload';
 import AnalysisDisplay from '../components/AnalysisDisplay';
 import type { AnalysisRecord, UserSummary } from '../types/api';
+import { normalizeFileName } from '../utils/fileName';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -142,7 +143,7 @@ const Dashboard: React.FC = () => {
                       >
                         <FileText size={18} className="item-icon" />
                         <div className="item-info">
-                          <span className="item-name">{item.fileName}</span>
+                          <span className="item-name">{normalizeFileName(item.fileName)}</span>
                           <span className="item-date">{new Date(item.createdAt).toLocaleDateString('pt-BR')}</span>
                         </div>
                         <div className="item-actions">

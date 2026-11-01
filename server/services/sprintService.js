@@ -5,6 +5,7 @@ import mammoth from 'mammoth';
 import { analyzeText, analyzeSprintContext } from '../utils/gemini.js';
 import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
+import { normalizeFileName } from '../utils/fileName.js';
 
 export const countUserSprints = async userId => Sprint.countDocuments({ userId });
 export const createSprint = async (userId, name, durationDays) => new Sprint({ userId, name, durationDays, uploads: [] }).save();
@@ -25,8 +26,9 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
     if (!extractedText.trim()) throw new Error('BAD_REQUEST_EMPTY');
     extractedText = extractedText.slice(0, config.geminiMaxInputChars);
     const aiSummary = await analyzeText(extractedText);
-    const newAnalysis = await new Analysis({ userId, fileName: originalname, fileType: mimetype, originalText: extractedText, summary: aiSummary, sprintId }).save();
-    const upload = { day: dayNumber, analysisId: newAnalysis._id, fileName: originalname, uploadedAt: new Date() };
+    const normalizedFileName = normalizeFileName(originalname);
+    const newAnalysis = await new Analysis({ userId, fileName: normalizedFileName, fileType: mimetype, originalText: extractedText, summary: aiSummary, sprintId }).save();
+    const upload = { day: dayNumber, analysisId: newAnalysis._id, fileName: normalizedFileName, uploadedAt: new Date() };
     const oldUpload = (sprint.uploads || []).find(item => item.day === dayNumber);
     const updated = oldUpload ? await Sprint.findOneAndUpdate({ _id: sprint._id, userId, 'uploads.day': dayNumber }, { $set: { 'uploads.$': upload } }, { new: true, runValidators: true }) : await Sprint.findOneAndUpdate({ _id: sprint._id, userId }, { $push: { uploads: upload } }, { new: true, runValidators: true });
     if (!updated) { await Analysis.findByIdAndDelete(newAnalysis._id).catch(() => {}); throw new Error('SPRINT_NOT_FOUND'); }

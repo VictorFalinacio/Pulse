@@ -11,6 +11,7 @@ import { useCooldown } from '../context/useCooldown';
 import { useUpload } from '../context/useUpload';
 import type { AnalysisDisplayHandle } from '../components/AnalysisDisplay';
 import type { AnalysisRecord, SprintRecord, UserSummary, SprintUpload } from '../types/api';
+import { normalizeFileName } from '../utils/fileName';
 
 const SprintDashboard: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -208,7 +209,7 @@ const SprintDashboard: React.FC = () => {
                                                             <CheckCircle size={14} />
                                                         </div>
                                                         <Upload size={24} />
-                                                        <span className="file-name">{uploadData.fileName}</span>
+                                                        <span className="file-name">{normalizeFileName(uploadData.fileName)}</span>
                                                     </div>
                                                 ) : (
                                                     <div className="upload-placeholder">
@@ -392,7 +393,7 @@ const SprintDashboard: React.FC = () => {
 
                 .sprint-dashboard-layout {
                     display: grid;
-                    grid-template-columns: 1fr 550px;
+                    grid-template-columns: minmax(0, 1fr) minmax(420px, 550px);
                     gap: 3rem;
                     align-items: start;
                 }
@@ -471,7 +472,8 @@ const SprintDashboard: React.FC = () => {
                 }
 
                 .upload-square {
-                    aspect-ratio: 1.2;
+                    height: 290px;
+                    min-width: 0;
                     background: #0a0a0a;
                     border: 1px solid var(--card-border);
                     border-radius: 12px;
@@ -599,7 +601,7 @@ const SprintDashboard: React.FC = () => {
                     flex-direction: column;
                     position: sticky;
                     top: 100px;
-                    max-height: calc(100vh - 120px);
+                    max-height: none;
                 }
 
                 .sidebar-header {
@@ -626,7 +628,7 @@ const SprintDashboard: React.FC = () => {
 
                 .summary-content {
                     flex: 1;
-                    overflow-y: auto;
+                    overflow: visible;
                     padding: 1.5rem;
                 }
 
