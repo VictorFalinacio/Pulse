@@ -86,9 +86,14 @@ Rotas autenticadas esperam `Authorization: Bearer <JWT>`. Corpos e respostas sã
 - Limites: 100 requisições gerais por IP a cada 15 minutos; 5 requisições de autenticação por IP a cada 15 minutos; um upload por usuário a cada minuto; arquivo de até 5 MB.
 - O backend emite logs JSON com horário, rota, método, status e duração. Não registra corpo, senhas, tokens ou conteúdo de atas.
 - O texto enviado ao Gemini é limitado por `GEMINI_MAX_INPUT_CHARS`; o contexto consolidado de sprint é limitado por `GEMINI_MAX_SPRINT_CONTEXT_CHARS`. `GEMINI_MAX_OUTPUT_TOKENS` controla o tamanho máximo da resposta e `GEMINI_TIMEOUT_MS` controla o tempo de espera. Os limites têm tetos de segurança no servidor.
-- A aplicação não consulta métricas de cobrança por token. Configure limites e alertas de orçamento no console do provedor Gemini. O uso da chave é configurável por `GEMINI_MODEL`; `GEMINI_API_KEY_2` funciona como alternativa a `GEMINI_API_KEY`.
-- O backend verifica propriedade dos recursos, hash de senha, tokens com expiração, origem CORS, tipo/assinatura de arquivos e limites de requisições.
+- A aplicação não consulta métricas de cobrança por token. Configure limites e alertas de orçamento no console do provedor Gemini. O uso da chave é configurável por `GEMINI_MODEL`; `GEMINI_API_KEY` é usada primeiro e `GEMINI_API_KEY_2` só quando a chave principal não está definida (não há failover durante uma chamada).
+- O backend verifica propriedade dos recursos, hash de senha e de tokens de uso único, tokens com expiração, origem CORS, tipo/assinatura de arquivos e limites de requisições. E-mails são normalizados com espaços removidos e letras minúsculas.
+- A extração de arquivos usa o limite `GEMINI_MAX_INPUT_CHARS`. Os relatórios usam prompts versionados e saída JSON com schema, convertida em Markdown para manter o formato esperado pelo frontend. A ata é enviada como dado entre tags e as regras de análise ficam na instrução de sistema.
 - Em produção, use HTTPS, segredo JWT aleatório, chaves restritas e uma lista `ALLOWED_ORIGINS` com apenas domínios publicados.
+
+### Migração de instalações existentes
+
+Antes de publicar esta versão em um banco já usado, execute uma vez `node scripts/migrate-auth-security.js` com `MONGO_URI` configurado. O script converte tokens pendentes em hashes sem invalidar os links enviados e remove o índice TTL legado que apagava usuários verificados após 24 horas. Faça backup do banco antes da migração.
 
 ## Comandos
 

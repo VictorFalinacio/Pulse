@@ -23,6 +23,10 @@ const sprintSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    contextRevision: {
+        type: Number,
+        default: 0
+    },
     uploads: [
         {
             day: {

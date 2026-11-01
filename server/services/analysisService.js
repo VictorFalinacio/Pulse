@@ -1,9 +1,8 @@
 import Analysis from '../models/Analysis.js';
-import pdfParse from 'pdf-parse';
-import mammoth from 'mammoth';
+import mongoose from 'mongoose';
 import { analyzeText } from '../utils/gemini.js';
 import { assertOwned } from '../utils/ownership.js';
-import { config } from '../config.js';
+import { extractText } from '../utils/extractText.js';
 
 export const checkCooldown = async (userId) => {
     const lastAnalysis = await Analysis.findOne({ userId }).sort({ createdAt: -1 });
@@ -17,46 +16,13 @@ export const checkCooldown = async (userId) => {
 };
 
 export const processAnalysis = async (userId, fileBuffer, mimetype, originalname) => {
-    let extractedText = '';
-
-    if (mimetype === 'application/pdf') {
-        const pdfData = await pdfParse(fileBuffer);
-        extractedText = pdfData.text;
-    } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        const result = await mammoth.extractRawText({ buffer: fileBuffer });
-        extractedText = result.value;
-    } else if (mimetype === 'text/plain') {
-        extractedText = fileBuffer.toString('utf-8');
-    } else {
-        throw new Error('UNSUPPORTED_FORMAT');
-    }
-
-    if (!extractedText || extractedText.trim().length === 0) {
-        throw new Error('EMPTY_FILE');
-    }
-
-    if (extractedText.length > 50000) {
-        extractedText = extractedText.substring(0, 50000);
-    }
-
-    // AI Analysis with timeout
-    let timeout;
-    const timeoutPromise = new Promise((_, reject) => {
-        timeout = setTimeout(() => reject(new Error('TIMEOUT')), config.geminiTimeoutMs);
-    });
-    
+    const extractedText = await extractText(fileBuffer, mimetype);
     let aiSummary;
     try {
-        aiSummary = await Promise.race([
-            analyzeText(extractedText),
-            timeoutPromise
-        ]);
+        aiSummary = await analyzeText(extractedText);
     } catch (err) {
-        if (err.message === 'TIMEOUT') throw new Error('AI_TIMEOUT');
         if (err.message === 'AI_TIMEOUT' || err.message === 'AI_INPUT_TOO_LARGE') throw err;
         throw new Error(`AI_ERROR:${err.message}`);
-    } finally {
-        clearTimeout(timeout);
     }
 
     const newAnalysis = new Analysis({
@@ -71,7 +37,7 @@ export const processAnalysis = async (userId, fileBuffer, mimetype, originalname
 };
 
 export const getHistory = async (userId) => {
-    return await Analysis.find({ userId, sprintId: { $exists: false } }).sort({ createdAt: -1 });
+    return await Analysis.find({ userId, sprintId: mongoose.trusted({ $exists: false }) }).sort({ createdAt: -1 });
 };
 
 export const deleteAnalysis = async (analysisId, userId) => {

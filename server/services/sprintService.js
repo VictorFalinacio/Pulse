@@ -1,10 +1,10 @@
 import Sprint from '../models/Sprint.js';
 import Analysis from '../models/Analysis.js';
-import pdfParse from 'pdf-parse';
-import mammoth from 'mammoth';
 import { analyzeText, analyzeSprintContext } from '../utils/gemini.js';
 import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
+import { extractText } from '../utils/extractText.js';
+import { log } from '../utils/logger.js';
 
 export const countUserSprints = async (userId) => {
     return await Sprint.countDocuments({ userId });
@@ -42,45 +42,32 @@ export const deleteSprint = async (sprintId, userId) => {
 };
 
 export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mimetype, originalname) => {
-    const sprint = await Sprint.findById(sprintId);
+    const sprint = await Sprint.findById(sprintId).populate('uploads.analysisId');
     assertOwned(sprint, userId);
     const dayNumber = Number(day);
     if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > sprint.durationDays) throw new Error('BAD_REQUEST_DAY');
 
-    let extractedText = '';
-    if (mimetype === 'application/pdf') {
-        const pdfData = await pdfParse(fileBuffer);
-        extractedText = pdfData.text;
-    } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        const result = await mammoth.extractRawText({ buffer: fileBuffer });
-        extractedText = result.value;
-    } else if (mimetype === 'text/plain') {
-        extractedText = fileBuffer.toString('utf-8');
+    let extractedText;
+    try {
+        extractedText = await extractText(fileBuffer, mimetype);
+    } catch (error) {
+        if (error.message === 'EMPTY_FILE') throw new Error('BAD_REQUEST_EMPTY');
+        throw error;
     }
 
-    if (!extractedText || extractedText.trim().length === 0) {
-        throw new Error('BAD_REQUEST_EMPTY');
-    }
+    const initialRevision = sprint.contextRevision || 0;
+    const contextUploads = sprint.uploads
+        .filter(item => item.analysisId?.originalText && item.day !== dayNumber)
+        .map(item => ({ day: item.day, text: item.analysisId.originalText }));
+    contextUploads.push({ day: dayNumber, text: extractedText });
+    contextUploads.sort((a, b) => a.day - b.day);
+    const initialContext = contextUploads.map(item => `Dia ${item.day}:\n${item.text}`).join('\n\n');
+    const boundedInitialContext = initialContext.slice(-config.geminiMaxSprintContextChars);
 
-    if (extractedText.length > 50000) {
-        extractedText = extractedText.substring(0, 50000);
-    }
-
-    // Preparar textos para agregação de contexto ANTES de salvar (para rodar em paralelo)
-    const populatedSprintForContext = await Sprint.findById(sprintId).populate('uploads.analysisId');
-    const existingUploads = populatedSprintForContext.uploads
-        .filter(u => u.analysisId && u.analysisId.originalText && u.day !== dayNumber)
-        .map(u => ({ day: u.day, text: u.analysisId.originalText }));
-    
-    existingUploads.push({ day: dayNumber, text: extractedText });
-    existingUploads.sort((a, b) => a.day - b.day);
-    const contextText = existingUploads.map(upload => `Dia ${upload.day}:\n${upload.text}`).join('\n\n');
-    const allTexts = [contextText.slice(-config.geminiMaxSprintContextChars)];
-
-    // Disparar ambas as requisições API em paralelo usando Promise.all para evitar Vercel timeout
-    const [aiSummary, globalSummary] = await Promise.all([
+    // Keep the two Gemini calls parallel in the common case to fit serverless limits.
+    let [aiSummary, globalSummary] = await Promise.all([
         analyzeText(extractedText),
-        allTexts.length > 0 ? analyzeSprintContext(allTexts) : Promise.resolve(null)
+        analyzeSprintContext([boundedInitialContext])
     ]);
 
     const newAnalysis = new Analysis({
@@ -94,36 +81,57 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
 
     await newAnalysis.save();
 
-    const uploadIndex = sprint.uploads.findIndex(u => u.day === dayNumber);
-    if (uploadIndex > -1) {
-        const oldAnalysisId = sprint.uploads[uploadIndex].analysisId;
-        if (oldAnalysisId) {
-            await Analysis.findByIdAndDelete(oldAnalysisId).catch(() => {});
+    const uploadedAt = new Date();
+    const upload = { day: dayNumber, analysisId: newAnalysis._id, fileName: originalname, uploadedAt };
+    const updated = await Sprint.findOneAndUpdate(
+        { _id: sprint._id, userId },
+        [{ $set: {
+            uploads: {
+                $concatArrays: [
+                    { $filter: { input: { $ifNull: ['$uploads', []] }, as: 'upload', cond: { $ne: ['$$upload.day', dayNumber] } } },
+                    [upload]
+                ]
+            },
+            contextRevision: { $add: [{ $ifNull: ['$contextRevision', 0] }, 1] }
+        } }],
+        { new: true }
+    );
+    if (!updated) {
+        await Analysis.findByIdAndDelete(newAnalysis._id);
+        throw new Error('SPRINT_NOT_FOUND');
+    }
+
+    const previousDayUpload = sprint.uploads.find(item => item.day === dayNumber);
+    if (previousDayUpload?.analysisId) {
+        await Analysis.findByIdAndDelete(previousDayUpload.analysisId).catch(() => {});
+    }
+
+    // If another upload committed while Gemini was working, recompute from the
+    // committed sprint so the consolidated report includes both changes.
+    let summaryUpdated = false;
+    try {
+        if (updated.contextRevision !== initialRevision + 1) {
+            const sprintForContext = await Sprint.findById(sprintId).populate('uploads.analysisId');
+            if (!sprintForContext) throw new Error('SPRINT_NOT_FOUND');
+            const latestUploads = sprintForContext.uploads
+                .filter(item => item.analysisId?.originalText)
+                .sort((a, b) => a.day - b.day)
+                .map(item => ({ day: item.day, text: item.analysisId.originalText }));
+            const latestContext = latestUploads.map(item => `Dia ${item.day}:\n${item.text}`).join('\n\n');
+            globalSummary = await analyzeSprintContext([latestContext.slice(-config.geminiMaxSprintContextChars)]);
         }
-        sprint.uploads[uploadIndex] = {
-            day: dayNumber,
-            analysisId: newAnalysis._id,
-            fileName: originalname,
-            uploadedAt: new Date()
-        };
-    } else {
-        sprint.uploads.push({
-            day: dayNumber,
-            analysisId: newAnalysis._id,
-            fileName: originalname,
-            uploadedAt: new Date()
-        });
+        const result = await Sprint.updateOne(
+            { _id: sprintId, userId, contextRevision: updated.contextRevision },
+            { $set: { aggregatedSummary: globalSummary } }
+        );
+        summaryUpdated = result.matchedCount === 1;
+    } catch (error) {
+        log('warn', 'sprint_summary_refresh_failed', { sprintId: String(sprintId), message: error.message });
     }
-
-    if (globalSummary) {
-        sprint.aggregatedSummary = globalSummary;
-    }
-
-    sprint.markModified('uploads');
-    await sprint.save();
 
     return { 
-        sprint: await Sprint.findById(sprintId).populate('uploads.analysisId'), 
-        analysis: newAnalysis 
+        sprint: await Sprint.findById(sprintId).populate('uploads.analysisId'),
+        analysis: newAnalysis,
+        summaryUpdated
     };
 };
