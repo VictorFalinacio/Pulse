@@ -8,7 +8,6 @@ if (!process.env.JWT_SECRET) {
     console.error('CRITICAL: JWT_SECRET must be set in environment variables');
 }
 
-router.post('/register', authController.register);
 const strictAuthLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,
