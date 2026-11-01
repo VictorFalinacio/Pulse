@@ -2,7 +2,7 @@ import Sprint from '../models/Sprint.js';
 import Analysis from '../models/Analysis.js';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
-import { analyzeText, analyzeSprintContext } from '../utils/gemini.js';
+import { analyzeText, analyzeSprintContext } from '../utils/groq.js';
 import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
 
@@ -75,7 +75,7 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
     existingUploads.push({ day: dayNumber, text: extractedText });
     existingUploads.sort((a, b) => a.day - b.day);
     const contextText = existingUploads.map(upload => `Dia ${upload.day}:\n${upload.text}`).join('\n\n');
-    const allTexts = [contextText.slice(-config.geminiMaxSprintContextChars)];
+    const allTexts = [contextText.slice(-config.aiMaxSprintContextChars)];
 
     // Disparar ambas as requisições API em paralelo usando Promise.all para evitar Vercel timeout
     const [aiSummary, globalSummary] = await Promise.all([

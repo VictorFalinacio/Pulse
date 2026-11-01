@@ -6,7 +6,7 @@ Plataforma para transformar atas de cerimônias ágeis em relatórios sobre prog
 
 - O usuário cria uma conta, confirma o e-mail e entra com senha.
 - No dashboard, pode enviar uma ata individual ou criar uma sprint de até 14 dias e anexar uma reunião a cada dia.
-- A API extrai texto de PDF, DOCX ou TXT, envia o texto ao Google Gemini e persiste o relatório e os dados no MongoDB.
+- A API extrai texto de PDF, DOCX ou TXT, envia o texto ao Groq e persiste o relatório e os dados no MongoDB.
 - As atas de uma sprint são consolidadas em um relatório atualizado a cada upload.
 
 ## Arquitetura
@@ -14,7 +14,7 @@ Plataforma para transformar atas de cerimônias ágeis em relatórios sobre prog
 - Frontend: React 19, TypeScript, Vite e React Router.
 - API: Node.js, Express 5, controllers/services, autenticação JWT.
 - Dados: MongoDB e Mongoose.
-- Integrações: Gemini para relatórios; Nodemailer/Gmail SMTP para e-mail.
+- Integrações: Groq para relatórios; Nodemailer/Gmail SMTP para e-mail.
 - Deploy: frontend estático e API serverless na Vercel.
 
 `server/app.js` concentra middleware, rotas, conexão MongoDB, logs e erros. `server/index.js` inicia o servidor local; `api/index.js` exporta a mesma aplicação para a Vercel.
@@ -41,13 +41,12 @@ MONGO_URI=mongodb://127.0.0.1:27017/agile-pulse
 JWT_SECRET=gere-um-segredo-longo-e-aleatorio
 EMAIL_USER=seu-email-de-envio@gmail.com
 EMAIL_PASS=senha-de-aplicativo-do-provedor
-GEMINI_API_KEY=sua-chave-do-gemini
-GEMINI_API_KEY_2=
-GEMINI_MODEL=gemini-2.5-flash
-GEMINI_MAX_INPUT_CHARS=50000
-GEMINI_MAX_SPRINT_CONTEXT_CHARS=50000
-GEMINI_MAX_OUTPUT_TOKENS=4096
-GEMINI_TIMEOUT_MS=25000
+GROQ_API_KEY=sua-chave-do-groq
+GROQ_MODEL=openai/gpt-oss-120b
+AI_MAX_INPUT_CHARS=50000
+AI_MAX_SPRINT_CONTEXT_CHARS=50000
+AI_MAX_OUTPUT_TOKENS=4096
+AI_TIMEOUT_MS=25000
 ALLOWED_ORIGINS=http://localhost:5173
 FRONTEND_URL=http://localhost:5173
 NODE_ENV=development
@@ -85,8 +84,8 @@ Rotas autenticadas esperam `Authorization: Bearer <JWT>`. Corpos e respostas sã
 - Os arquivos ficam em memória durante o processamento. O arquivo original não é armazenado; o texto extraído e o relatório são persistidos no MongoDB.
 - Limites: 100 requisições gerais por IP a cada 15 minutos; 5 requisições de autenticação por IP a cada 15 minutos; um upload por usuário a cada minuto; arquivo de até 5 MB.
 - O backend emite logs JSON com horário, rota, método, status e duração. Não registra corpo, senhas, tokens ou conteúdo de atas.
-- O texto enviado ao Gemini é limitado por `GEMINI_MAX_INPUT_CHARS`; o contexto consolidado de sprint é limitado por `GEMINI_MAX_SPRINT_CONTEXT_CHARS`. `GEMINI_MAX_OUTPUT_TOKENS` controla o tamanho máximo da resposta e `GEMINI_TIMEOUT_MS` controla o tempo de espera. Os limites têm tetos de segurança no servidor.
-- A aplicação não consulta métricas de cobrança por token. Configure limites e alertas de orçamento no console do provedor Gemini. O uso da chave é configurável por `GEMINI_MODEL`; `GEMINI_API_KEY_2` funciona como alternativa a `GEMINI_API_KEY`.
+- O texto enviado ao Groq é limitado por `AI_MAX_INPUT_CHARS`; o contexto consolidado de sprint é limitado por `AI_MAX_SPRINT_CONTEXT_CHARS`. `AI_MAX_OUTPUT_TOKENS` controla o tamanho máximo da resposta e `AI_TIMEOUT_MS` controla o tempo de espera. Os limites têm tetos de segurança no servidor.
+- A aplicação não consulta métricas de cobrança por token. Configure limites e alertas de orçamento no console do provedor Groq. O modelo pode ser configurado por `GROQ_MODEL`; a chave `GROQ_API_KEY` deve existir somente no backend.
 - O backend verifica propriedade dos recursos, hash de senha, tokens com expiração, origem CORS, tipo/assinatura de arquivos e limites de requisições.
 - Em produção, use HTTPS, segredo JWT aleatório, chaves restritas e uma lista `ALLOWED_ORIGINS` com apenas domínios publicados.
 

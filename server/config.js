@@ -5,9 +5,9 @@ const positiveInteger = (name, fallback, maximum) => {
 };
 
 export const config = Object.freeze({
-    geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-    geminiMaxInputChars: positiveInteger('GEMINI_MAX_INPUT_CHARS', 50000, 100000),
-    geminiMaxSprintContextChars: positiveInteger('GEMINI_MAX_SPRINT_CONTEXT_CHARS', 50000, 100000),
-    geminiMaxOutputTokens: positiveInteger('GEMINI_MAX_OUTPUT_TOKENS', 4096, 8192),
-    geminiTimeoutMs: positiveInteger('GEMINI_TIMEOUT_MS', 25000, 28000)
+    groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+    aiMaxInputChars: positiveInteger('AI_MAX_INPUT_CHARS', positiveInteger('GEMINI_MAX_INPUT_CHARS', 50000, 100000), 100000),
+    aiMaxSprintContextChars: positiveInteger('AI_MAX_SPRINT_CONTEXT_CHARS', positiveInteger('GEMINI_MAX_SPRINT_CONTEXT_CHARS', 50000, 100000), 100000),
+    aiMaxOutputTokens: positiveInteger('AI_MAX_OUTPUT_TOKENS', positiveInteger('GEMINI_MAX_OUTPUT_TOKENS', 4096, 8192), 8192),
+    aiTimeoutMs: positiveInteger('AI_TIMEOUT_MS', positiveInteger('GEMINI_TIMEOUT_MS', 25000, 28000), 28000)
 });

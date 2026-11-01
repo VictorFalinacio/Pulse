@@ -1,7 +1,7 @@
 import Analysis from '../models/Analysis.js';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
-import { analyzeText } from '../utils/gemini.js';
+import { analyzeText } from '../utils/groq.js';
 import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
 
@@ -42,7 +42,7 @@ export const processAnalysis = async (userId, fileBuffer, mimetype, originalname
     // AI Analysis with timeout
     let timeout;
     const timeoutPromise = new Promise((_, reject) => {
-        timeout = setTimeout(() => reject(new Error('TIMEOUT')), config.geminiTimeoutMs);
+        timeout = setTimeout(() => reject(new Error('TIMEOUT')), config.aiTimeoutMs);
     });
     
     let aiSummary;
