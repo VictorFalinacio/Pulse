@@ -87,7 +87,7 @@ export const uploadSprintData = async (req, res) => {
         if (error.message === 'BAD_REQUEST_EMPTY') return res.status(400).json({ msg: 'Não foi possível extrair texto do arquivo.' });
         if (error.message === 'AI_INPUT_TOO_LARGE') return res.status(413).json({ msg: 'O texto acumulado ultrapassa o limite de contexto configurado.' });
         if (error.message === 'AI_TIMEOUT') return res.status(504).json({ msg: 'A análise levou muito tempo. Tente novamente com um arquivo menor.' });
-        if (error.message.startsWith('Falha ao analisar')) return res.status(502).json({ msg: 'A análise por IA falhou. Tente novamente em instantes.' });
+        if (typeof error?.message === 'string' && error.message.startsWith('Falha ao analisar')) return res.status(502).json({ msg: 'A análise por IA falhou. Tente novamente em instantes.' });
         
         res.status(500).json({ msg: 'Erro ao processar o upload da sprint.' });
     }

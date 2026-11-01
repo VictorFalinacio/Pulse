@@ -42,7 +42,7 @@ export const deleteSprint = async (sprintId, userId) => {
 };
 
 export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mimetype, originalname) => {
-    const sprint = await Sprint.findById(sprintId);
+    const sprint = await Sprint.findOne({ _id: sprintId, userId });
     assertOwned(sprint, userId);
     const dayNumber = Number(day);
     if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > sprint.durationDays) throw new Error('BAD_REQUEST_DAY');
@@ -66,22 +66,9 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
         extractedText = extractedText.substring(0, 50000);
     }
 
-    // Preparar textos para agregação de contexto ANTES de salvar (para rodar em paralelo)
-    const populatedSprintForContext = await Sprint.findById(sprintId).populate('uploads.analysisId');
-    const existingUploads = populatedSprintForContext.uploads
-        .filter(u => u.analysisId && u.analysisId.originalText && u.day !== dayNumber)
-        .map(u => ({ day: u.day, text: u.analysisId.originalText }));
-    
-    existingUploads.push({ day: dayNumber, text: extractedText });
-    existingUploads.sort((a, b) => a.day - b.day);
-    const contextText = existingUploads.map(upload => `Dia ${upload.day}:\n${upload.text}`).join('\n\n');
-    const allTexts = [contextText.slice(-config.geminiMaxSprintContextChars)];
-
-    // Disparar ambas as requisições API em paralelo usando Promise.all para evitar Vercel timeout
-    const [aiSummary, globalSummary] = await Promise.all([
-        analyzeText(extractedText),
-        allTexts.length > 0 ? analyzeSprintContext(allTexts) : Promise.resolve(null)
-    ]);
+    // A análise da reunião é o requisito do upload. O resumo consolidado é
+    // secundário e não pode fazer o upload inteiro falhar.
+    const aiSummary = await analyzeText(extractedText);
 
     const newAnalysis = new Analysis({
         userId,
@@ -94,36 +81,43 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
 
     await newAnalysis.save();
 
-    const uploadIndex = sprint.uploads.findIndex(u => u.day === dayNumber);
-    if (uploadIndex > -1) {
-        const oldAnalysisId = sprint.uploads[uploadIndex].analysisId;
-        if (oldAnalysisId) {
-            await Analysis.findByIdAndDelete(oldAnalysisId).catch(() => {});
-        }
-        sprint.uploads[uploadIndex] = {
-            day: dayNumber,
-            analysisId: newAnalysis._id,
-            fileName: originalname,
-            uploadedAt: new Date()
-        };
-    } else {
-        sprint.uploads.push({
-            day: dayNumber,
-            analysisId: newAnalysis._id,
-            fileName: originalname,
-            uploadedAt: new Date()
-        });
+    const upload = { day: dayNumber, analysisId: newAnalysis._id, fileName: originalname, uploadedAt: new Date() };
+    const oldUpload = (sprint.uploads || []).find(item => item.day === dayNumber);
+    const updated = oldUpload
+        ? await Sprint.findOneAndUpdate(
+            { _id: sprint._id, userId, 'uploads.day': dayNumber },
+            { $set: { 'uploads.$': upload }, $inc: { contextRevision: 1 } },
+            { new: true, runValidators: true }
+        )
+        : await Sprint.findOneAndUpdate(
+            { _id: sprint._id, userId },
+            { $push: { uploads: upload }, $inc: { contextRevision: 1 } },
+            { new: true, runValidators: true }
+        );
+    if (!updated) {
+        await Analysis.findByIdAndDelete(newAnalysis._id).catch(() => {});
+        throw new Error('SPRINT_NOT_FOUND');
     }
+    if (oldUpload?.analysisId) await Analysis.findByIdAndDelete(oldUpload.analysisId).catch(() => {});
 
-    if (globalSummary) {
-        sprint.aggregatedSummary = globalSummary;
+    let summaryUpdated = false;
+    try {
+        const current = await Sprint.findById(sprintId).populate('uploads.analysisId');
+        const texts = (current.uploads || [])
+            .filter(item => item.analysisId?.originalText)
+            .sort((a, b) => a.day - b.day)
+            .map(item => `Dia ${item.day}:\n${item.analysisId.originalText}`)
+            .join('\n\n');
+        const globalSummary = await analyzeSprintContext([texts.slice(-config.geminiMaxSprintContextChars)]);
+        const result = await Sprint.updateOne({ _id: sprintId, userId }, { $set: { aggregatedSummary: globalSummary } });
+        summaryUpdated = result.matchedCount === 1;
+    } catch (error) {
+        console.warn('Sprint summary refresh failed:', error.message);
     }
-
-    sprint.markModified('uploads');
-    await sprint.save();
 
     return { 
         sprint: await Sprint.findById(sprintId).populate('uploads.analysisId'), 
-        analysis: newAnalysis 
+        analysis: newAnalysis,
+        summaryUpdated
     };
 };
