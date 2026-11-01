@@ -5,6 +5,7 @@ import mammoth from 'mammoth';
 import { analyzeText, analyzeSprintContext } from '../utils/groq.js';
 import { assertOwned } from '../utils/ownership.js';
 import { config } from '../config.js';
+import * as analysisService from './analysisService.js';
 
 export const countUserSprints = async (userId) => {
     return await Sprint.countDocuments({ userId });
@@ -47,6 +48,12 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
     const dayNumber = Number(day);
     if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > sprint.durationDays) throw new Error('BAD_REQUEST_DAY');
 
+    const cooldown = await analysisService.checkCooldown(userId);
+    if (cooldown.onCooldown) {
+        const error = new Error('UPLOAD_COOLDOWN');
+        error.remaining = cooldown.remaining;
+        throw error;
+    }
     let extractedText = '';
     if (mimetype === 'application/pdf') {
         const pdfData = await pdfParse(fileBuffer);

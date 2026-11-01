@@ -24,7 +24,8 @@ const uploadLimiter = rateLimit({
     windowMs: 60 * 1000, 
     max: 1, 
     message: { msg: 'Aguarde 1 minuto de cooldown entre os uploads' },
-    keyGenerator: (req) => req.user?.id || req.ip
+    skipFailedRequests: true,
+    keyGenerator: (req) => String(req.user.id)
 });
 
 router.post('/analisar', authMiddleware, uploadLimiter, upload.single('file'), analysisController.analisar);

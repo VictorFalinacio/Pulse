@@ -47,6 +47,7 @@ AI_MAX_INPUT_CHARS=50000
 AI_MAX_SPRINT_CONTEXT_CHARS=50000
 AI_MAX_OUTPUT_TOKENS=4096
 AI_TIMEOUT_MS=25000
+TRUST_PROXY_HOPS=0
 ALLOWED_ORIGINS=http://localhost:5173
 FRONTEND_URL=http://localhost:5173
 NODE_ENV=development
@@ -83,6 +84,8 @@ Rotas autenticadas esperam `Authorization: Bearer <JWT>`. Corpos e respostas sã
 
 - Os arquivos ficam em memória durante o processamento. O arquivo original não é armazenado; o texto extraído e o relatório são persistidos no MongoDB.
 - Limites: 100 requisições gerais por IP a cada 15 minutos; 5 requisições de autenticação por IP a cada 15 minutos; um upload por usuário a cada minuto; arquivo de até 5 MB.
+- Em Vercel, `trust proxy` usa um salto por padrão (`VERCEL`), pois a plataforma sobrescreve `X-Forwarded-For` com o IP público do cliente. `TRUST_PROXY_HOPS` permite ajustar de 0 a 5; localmente o padrão é 0. Para validar em preview antes de produção, adicione temporariamente um log de `req.ip` e `req.get('x-forwarded-for')`, compare acessos por redes diferentes e tente enviar um `X-Forwarded-For` falso; confirme que o IP identificado permanece o IP público. Remova o log de diagnóstico após validar.
+- Os limiters expressos usam memória local por instância e não formam um contador global confiável entre funções serverless. O cooldown de upload é conferido no MongoDB para uploads avulsos e de sprint, valendo entre instâncias depois que uma análise é salva. Um store distribuído para os outros limites não foi adicionado.
 - O backend emite logs JSON com horário, rota, método, status e duração. Não registra corpo, senhas, tokens ou conteúdo de atas.
 - Campos de autenticação são validados como texto antes de consultar o banco. E-mails novos e atualizados são removidos de espaços externos e normalizados para minúsculas. A alteração do schema não reescreve automaticamente os e-mails já armazenados; antes de aplicar em uma base existente, normalize-os após backup e resolva eventuais duplicatas sem diferenciar maiúsculas/minúsculas. Contas antigas com caixa mista podem não conseguir entrar até essa migração.
 - Tokens de verificação e redefinição são persistidos somente como SHA-256. Tokens pendentes já emitidos em texto puro deixam de funcionar após a atualização; os usuários afetados devem solicitar novos links. O limite estrito de autenticação é de 5 tentativas por 15 minutos; verificações de e-mail e de token usam um limite separado de 30 por 15 minutos.

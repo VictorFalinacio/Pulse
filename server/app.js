@@ -8,12 +8,14 @@ import authRoutes from './routes/auth.js';
 import analysisRoutes from './routes/analysis.js';
 import sprintRoutes from './routes/sprint.js';
 import { log } from './utils/logger.js';
+import { config } from './config.js';
 
 const app = express();
 let mongoConnectionPromise;
 const mongoUri = process.env.MONGO_URI;
 
 app.disable('x-powered-by');
+app.set('trust proxy', config.trustProxyHops);
 app.use(helmet());
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(value => value.trim()).filter(Boolean)
     || ['http://localhost:5173', 'http://localhost:3000'];
