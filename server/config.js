@@ -13,11 +13,20 @@ const trustProxyHops = () => {
     return value;
 };
 
+const reasoningEffort = () => {
+    const value = process.env.AI_REASONING_EFFORT || 'medium';
+    if (!['low', 'medium', 'high'].includes(value)) {
+        throw new Error('AI_REASONING_EFFORT must be low, medium, or high.');
+    }
+    return value;
+};
+
 export const config = Object.freeze({
     groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
     aiMaxInputChars: positiveInteger('AI_MAX_INPUT_CHARS', positiveInteger('GEMINI_MAX_INPUT_CHARS', 50000, 100000), 100000),
     aiMaxSprintContextChars: positiveInteger('AI_MAX_SPRINT_CONTEXT_CHARS', positiveInteger('GEMINI_MAX_SPRINT_CONTEXT_CHARS', 50000, 100000), 100000),
-    aiMaxOutputTokens: positiveInteger('AI_MAX_OUTPUT_TOKENS', positiveInteger('GEMINI_MAX_OUTPUT_TOKENS', 4096, 8192), 8192),
-    aiTimeoutMs: positiveInteger('AI_TIMEOUT_MS', positiveInteger('GEMINI_TIMEOUT_MS', 25000, 28000), 28000),
+    aiMaxOutputTokens: positiveInteger('AI_MAX_OUTPUT_TOKENS', positiveInteger('GEMINI_MAX_OUTPUT_TOKENS', 8192, 8192), 8192),
+    aiTimeoutMs: positiveInteger('AI_TIMEOUT_MS', positiveInteger('GEMINI_TIMEOUT_MS', 22000, 25000), 25000),
+    aiReasoningEffort: reasoningEffort(),
     trustProxyHops: trustProxyHops()
 });

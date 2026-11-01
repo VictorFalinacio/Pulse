@@ -53,7 +53,8 @@ export const processAnalysis = async (userId, fileBuffer, mimetype, originalname
         ]);
     } catch (err) {
         if (err.message === 'TIMEOUT') throw new Error('AI_TIMEOUT');
-        if (err.message === 'AI_TIMEOUT' || err.message === 'AI_INPUT_TOO_LARGE') throw err;
+        if (['AI_TIMEOUT', 'AI_INPUT_TOO_LARGE', 'AI_OUTPUT_TRUNCATED', 'AI_RATE_LIMITED',
+            'AI_PROVIDER_UNAVAILABLE', 'AI_PROVIDER_ERROR', 'AI_EMPTY_RESPONSE', 'GROQ_NOT_CONFIGURED'].includes(err.message)) throw err;
         throw new Error(`AI_ERROR:${err.message}`);
     } finally {
         clearTimeout(timeout);

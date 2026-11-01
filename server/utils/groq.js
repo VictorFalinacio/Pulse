@@ -6,50 +6,106 @@ const validateInput = (text) => {
     if (text.length > config.aiMaxInputChars) throw new Error('AI_INPUT_TOO_LARGE');
 };
 
-const generateText = async (prompt, eventName) => {
+export const generateText = async (prompt, eventName = 'groq_analysis_failed', options = {}) => {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) throw new Error('GROQ_NOT_CONFIGURED');
+    const timeoutMs = options.timeoutMs ?? config.aiTimeoutMs;
+    const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+    const deadline = Date.now() + timeoutMs;
+    const maxAttempts = 2;
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), config.aiTimeoutMs);
-
-    try {
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: config.groqModel,
-                messages: [{ role: 'user', content: prompt }],
-                max_completion_tokens: config.aiMaxOutputTokens,
-                reasoning_effort: 'medium',
-                include_reasoning: false,
-                stream: false
-            }),
-            signal: controller.signal
-        });
-
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-            const providerMessage = data?.error?.message || response.statusText;
-            throw new Error(`Groq API ${response.status}: ${providerMessage}`);
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        const remainingMs = deadline - Date.now();
+        if (remainingMs <= 0) {
+            log('error', 'groq_timeout', { attempt, model: config.groqModel });
+            throw new Error('AI_TIMEOUT');
         }
 
-        const content = data?.choices?.[0]?.message?.content;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), remainingMs);
+        let response;
+        let data;
+
+        try {
+            response = await fetchImpl('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: config.groqModel,
+                    messages: [{ role: 'user', content: prompt }],
+                    max_completion_tokens: config.aiMaxOutputTokens,
+                    reasoning_effort: config.aiReasoningEffort,
+                    include_reasoning: false,
+                    stream: false
+                }),
+                signal: controller.signal
+            });
+            data = await response.json().catch(() => ({}));
+        } catch (error) {
+            clearTimeout(timer);
+            if (error.name === 'AbortError') {
+                log('error', 'groq_timeout', { attempt, model: config.groqModel });
+                throw new Error('AI_TIMEOUT');
+            }
+            log('error', eventName, { message: error.message, model: config.groqModel });
+            throw new Error('AI_PROVIDER_UNAVAILABLE');
+        }
+
+        clearTimeout(timer);
+        if (response.status === 429 || response.status >= 500) {
+            const providerMessage = data?.error?.message || response.statusText;
+            const errorCode = response.status === 429 ? 'AI_RATE_LIMITED' : 'AI_PROVIDER_UNAVAILABLE';
+
+            if (attempt < maxAttempts) {
+                const retryAfterHeader = response.headers.get('retry-after');
+                const retryAfterSeconds = retryAfterHeader === null ? null : Number(retryAfterHeader);
+                const retryAfterDate = retryAfterHeader && Number.isNaN(retryAfterSeconds)
+                    ? Date.parse(retryAfterHeader)
+                    : NaN;
+                const retryAfterMs = retryAfterHeader === null ? null
+                    : Number.isFinite(retryAfterSeconds) ? Math.max(0, retryAfterSeconds * 1000)
+                        : Number.isFinite(retryAfterDate) ? Math.max(0, retryAfterDate - Date.now()) : null;
+                const backoffMs = 250 * (2 ** (attempt - 1)) + Math.floor(Math.random() * 250);
+                const delayMs = retryAfterMs ?? backoffMs;
+                const remaining = deadline - Date.now();
+
+                if (delayMs < remaining) {
+                    log('warn', 'groq_retry', { attempt, status: response.status, delayMs, model: config.groqModel });
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                    continue;
+                }
+            }
+
+            log('error', eventName, { status: response.status, message: providerMessage, model: config.groqModel });
+            throw new Error(errorCode);
+        }
+
+        if (!response.ok) {
+            log('error', eventName, {
+                status: response.status,
+                message: data?.error?.message || response.statusText,
+                model: config.groqModel
+            });
+            throw new Error('AI_PROVIDER_ERROR');
+        }
+
+        const choice = data?.choices?.[0];
+        if (choice?.finish_reason === 'length') {
+            log('error', 'groq_response_truncated', { model: config.groqModel });
+            throw new Error('AI_OUTPUT_TRUNCATED');
+        }
+        const content = choice?.message?.content;
         if (typeof content !== 'string' || !content.trim()) {
-            throw new Error('Groq returned an empty response.');
+            log('error', eventName, { message: 'Groq returned an empty response.', model: config.groqModel });
+            throw new Error('AI_EMPTY_RESPONSE');
         }
         return content;
-    } catch (error) {
-        if (error.name === 'AbortError') throw new Error('AI_TIMEOUT');
-        log('error', eventName, { message: error.message, model: config.groqModel });
-        if (error.message === 'AI_TIMEOUT' || error.message === 'AI_INPUT_TOO_LARGE') throw error;
-        throw new Error('Falha ao analisar o texto com IA.');
-    } finally {
-        clearTimeout(timer);
     }
+
+    throw new Error('AI_PROVIDER_UNAVAILABLE');
 };
 
 export const analyzeText = async (text) => {

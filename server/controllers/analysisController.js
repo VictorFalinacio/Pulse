@@ -24,6 +24,11 @@ export const analisar = async (req, res) => {
         if (error.message === 'UNSUPPORTED_FORMAT') return res.status(400).json({ msg: 'Formato de arquivo não suportado. Use PDF, DOCX ou TXT.' });
         if (error.message === 'EMPTY_FILE') return res.status(400).json({ msg: 'Não foi possível extrair texto do arquivo (arquivo vazio ou sem texto).' });
         if (error.message === 'AI_TIMEOUT') return res.status(504).json({ msg: 'Análise levou muito tempo. Tente um arquivo menor.' });
+        if (error.message === 'AI_OUTPUT_TRUNCATED') return res.status(502).json({ msg: 'O relatório excedeu o limite de saída. Tente um arquivo menor.' });
+        if (error.message === 'AI_RATE_LIMITED') return res.status(429).json({ msg: 'Limite temporário do provedor de IA atingido. Tente novamente em instantes.' });
+        if (error.message === 'AI_PROVIDER_UNAVAILABLE') return res.status(503).json({ msg: 'O provedor de IA está temporariamente indisponível. Tente novamente em instantes.' });
+        if (error.message === 'GROQ_NOT_CONFIGURED') return res.status(503).json({ msg: 'O serviço de IA não está configurado.' });
+        if (error.message === 'AI_PROVIDER_ERROR' || error.message === 'AI_EMPTY_RESPONSE') return res.status(502).json({ msg: 'O provedor de IA não retornou um relatório válido.' });
         if (error.message.startsWith('AI_ERROR:')) return res.status(502).json({ msg: 'A análise por IA falhou. Tente novamente em instantes.' });
         if (error.message === 'AI_INPUT_TOO_LARGE') return res.status(413).json({ msg: 'O texto extraído ultrapassa o limite configurado para análise.' });
 

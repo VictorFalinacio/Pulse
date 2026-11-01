@@ -45,8 +45,9 @@ GROQ_API_KEY=sua-chave-do-groq
 GROQ_MODEL=openai/gpt-oss-120b
 AI_MAX_INPUT_CHARS=50000
 AI_MAX_SPRINT_CONTEXT_CHARS=50000
-AI_MAX_OUTPUT_TOKENS=4096
-AI_TIMEOUT_MS=25000
+AI_MAX_OUTPUT_TOKENS=8192
+AI_TIMEOUT_MS=22000
+AI_REASONING_EFFORT=medium
 TRUST_PROXY_HOPS=0
 ALLOWED_ORIGINS=http://localhost:5173
 FRONTEND_URL=http://localhost:5173
@@ -90,7 +91,7 @@ Rotas autenticadas esperam `Authorization: Bearer <JWT>`. Corpos e respostas sã
 - O backend emite logs JSON com horário, rota, método, status e duração. Não registra corpo, senhas, tokens ou conteúdo de atas.
 - Campos de autenticação são validados como texto antes de consultar o banco. E-mails novos e atualizados são removidos de espaços externos e normalizados para minúsculas. A alteração do schema não reescreve automaticamente os e-mails já armazenados; antes de aplicar em uma base existente, normalize-os após backup e resolva eventuais duplicatas sem diferenciar maiúsculas/minúsculas. Contas antigas com caixa mista podem não conseguir entrar até essa migração.
 - Tokens de verificação e redefinição são persistidos somente como SHA-256. Tokens pendentes já emitidos em texto puro deixam de funcionar após a atualização; os usuários afetados devem solicitar novos links. O limite estrito de autenticação é de 5 tentativas por 15 minutos; verificações de e-mail e de token usam um limite separado de 30 por 15 minutos.
-- O texto enviado ao Groq é limitado por `AI_MAX_INPUT_CHARS`; o contexto consolidado de sprint é limitado por `AI_MAX_SPRINT_CONTEXT_CHARS`. `AI_MAX_OUTPUT_TOKENS` controla o tamanho máximo da resposta e `AI_TIMEOUT_MS` controla o tempo de espera. Os limites têm tetos de segurança no servidor.
+- O texto enviado ao Groq é limitado por `AI_MAX_INPUT_CHARS`; o contexto consolidado de sprint é limitado por `AI_MAX_SPRINT_CONTEXT_CHARS`. `AI_MAX_OUTPUT_TOKENS` controla o limite de conclusão (incluindo raciocínio), `AI_REASONING_EFFORT` aceita `low`, `medium` ou `high`, e `AI_TIMEOUT_MS` define o prazo total de chamada e retries (máximo de 25s, abaixo dos 30s da função Vercel). Respostas terminadas por limite de tokens são rejeitadas e não são salvas.
 - A aplicação não consulta métricas de cobrança por token. Configure limites e alertas de orçamento no console do provedor Groq. O modelo pode ser configurado por `GROQ_MODEL`; a chave `GROQ_API_KEY` deve existir somente no backend.
 - O backend verifica propriedade dos recursos, hash de senha, tokens com expiração, origem CORS, tipo/assinatura de arquivos e limites de requisições.
 - Em produção, use HTTPS, segredo JWT aleatório, chaves restritas e uma lista `ALLOWED_ORIGINS` com apenas domínios publicados.
