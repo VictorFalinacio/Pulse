@@ -96,7 +96,7 @@ export const processSprintUpload = async (userId, sprintId, day, fileBuffer, mim
             uploads: {
                 $concatArrays: [
                     { $filter: { input: { $ifNull: ['$uploads', []] }, as: 'upload', cond: { $ne: ['$$upload.day', dayNumber] } } },
-                    [upload]
+                    { $literal: [upload] }
                 ]
             },
             contextRevision: { $add: [{ $ifNull: ['$contextRevision', 0] }, 1] }
